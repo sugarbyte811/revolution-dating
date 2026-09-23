@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Revolution Profile</title>
+<meta name="description" content="A private relationship profile, prepared for members of Revolution Dating.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ivory:#FBF8F3;
+  --cream:#F3EBE0;
+  --parchment:#EFE6D9;
+  --champagne:#D9C7A3;
+  --gold:#A8874B;
+  --gold-soft:#C3A870;
+  --oxblood:#3D0F1A;
+  --burgundy:#5E1A28;
+  --ink:#1A1216;
+  --muted:#7E6E66;
+  --rule:rgba(168,135,75,.28);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Jost',-apple-system,BlinkMacSystemFont,sans-serif;
+  font-weight:300;
+  background:var(--ivory);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  line-height:1.7;
+  overflow-x:hidden;
+}
+.serif{font-family:'Cormorant Garamond',Georgia,serif}
+
+/* ---------- celestial backdrop ---------- */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5}
+.stars circle{fill:var(--gold)}
+
+/* ---------- shell ---------- */
+.stage{position:relative;z-index:1;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.screen{display:none;flex:1;animation:rise .9s cubic-bezier(.22,.61,.36,1) both}
+.screen.on{display:flex;flex-direction:column}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.screen{animation:none}*{transition:none!important}}
+
+.wrap{width:100%;max-width:760px;margin:0 auto;padding:0 8vw}
+.wrap-wide{max-width:920px}
+
+/* ---------- cover ---------- */
+#cover{background:var(--oxblood);color:var(--cream);justify-content:center;align-items:center;text-align:center;min-height:100vh;min-height:100dvh}
+#cover .house{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--champagne);margin-bottom:54px;font-weight:400}
+#cover h1{font-size:clamp(46px,9vw,88px);font-weight:300;line-height:1.02;letter-spacing:.01em}
+#cover h1 em{font-style:italic;color:var(--gold-soft)}
+#cover .sub{font-size:clamp(13px,1.7vw,15px);letter-spacing:.2em;text-transform:uppercase;color:rgba(243,235,224,.55);margin-top:34px;font-weight:300}
+#cover .blurb{max-width:460px;margin:44px auto 0;font-size:15px;color:rgba(243,235,224,.72);line-height:1.85}
+.divider{width:64px;height:1px;background:var(--gold);margin:40px auto;opacity:.65}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-block;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.3em;
+  text-transform:uppercase;font-weight:400;padding:17px 44px;border:1px solid var(--gold);
+  background:transparent;color:var(--gold-soft);cursor:pointer;transition:all .5s ease;
+}
+.btn:hover{background:var(--gold);color:var(--oxblood)}
+.btn-dark{border-color:var(--burgundy);color:var(--burgundy)}
+.btn-dark:hover{background:var(--burgundy);color:var(--ivory)}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn:disabled:hover{background:transparent;color:var(--gold-soft)}
+.btn-text{background:none;border:none;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--muted);cursor:pointer;padding:10px 0;transition:color .4s}
+.btn-text:hover{color:var(--gold)}
+
+/* ---------- intake ---------- */
+#intake{padding:9vh 0 12vh;background:var(--ivory)}
+.eyebrow{font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:var(--gold);margin-bottom:22px;font-weight:400}
+.display{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,5.6vw,52px);font-weight:300;line-height:1.14;color:var(--oxblood);letter-spacing:.005em}
+.lede{font-size:15.5px;color:var(--muted);margin-top:22px;max-width:520px;line-height:1.85}
+
+.fields{margin-top:58px;display:grid;gap:34px}
+.field label{display:block;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);margin-bottom:11px;font-weight:400}
+.field label .opt{color:var(--champagne);letter-spacing:.14em;text-transform:none;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:13px}
+.field input[type=text],.field input[type=date],.field input[type=time],.field select{
+  width:100%;font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;color:var(--ink);
+  background:transparent;border:none;border-bottom:1px solid var(--rule);padding:9px 0;
+  transition:border-color .45s;border-radius:0;
+}
+.field input:focus,.field select:focus{outline:none;border-bottom-color:var(--gold)}
+.field .help{font-size:12.5px;color:var(--champagne);margin-top:9px;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.chip{font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:11px 20px;border:1px solid var(--rule);
+  cursor:pointer;transition:all .4s;color:var(--muted);background:transparent;font-family:'Jost',sans-serif}
+.chip:hover{border-color:var(--gold-soft)}
+.chip.on{background:var(--oxblood);border-color:var(--oxblood);color:var(--champagne)}
+
+.checkline{display:flex;align-items:center;gap:13px;cursor:pointer;margin-top:-16px}
+.checkline input{width:15px;height:15px;accent-color:var(--burgundy);cursor:pointer}
+.checkline span{font-size:13.5px;color:var(--muted);font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic}
+
+.err{color:var(--burgundy);font-size:13px;margin-top:20px;min-height:20px;font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic}
+
+/* ---------- assessment ---------- */
+#quiz{background:var(--ivory);justify-content:center;padding:7vh 0}
+.progress{position:fixed;top:0;left:0;right:0;height:2px;background:rgba(168,135,75,.13);z-index:20}
+.progress i{display:block;height:100%;background:var(--gold);width:0;transition:width .85s cubic-bezier(.22,.61,.36,1)}
+.qmeta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:40px}
+.qnum{font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:.3em;color:var(--gold);font-style:italic}
+.qmov{font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--champagne)}
+.qtext{font-family:'Cormorant Garamond',serif;font-size:clamp(25px,4.1vw,35px);font-weight:300;line-height:1.35;color:var(--oxblood);margin-bottom:12px}
+.qnote{font-size:14px;font-style:italic;color:var(--champagne);font-family:'Cormorant Garamond',serif;font-size:16px;margin-bottom:8px}
+.opts{margin-top:40px;display:grid;gap:2px}
+.opt{
+  text-align:left;background:transparent;border:none;border-top:1px solid var(--rule);
+  padding:25px 44px 25px 2px;cursor:pointer;position:relative;transition:all .45s ease;
+  font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;line-height:1.55;color:var(--ink);
+}
+.opts .opt:last-child{border-bottom:1px solid var(--rule)}
+.opt:hover{padding-left:16px;color:var(--burgundy);background:linear-gradient(90deg,rgba(168,135,75,.055),transparent)}
+.opt::after{content:'';position:absolute;right:10px;top:50%;width:19px;height:1px;background:var(--gold);
+  transform:translateY(-50%) scaleX(0);transform-origin:right;transition:transform .45s}
+.opt:hover::after{transform:translateY(-50%) scaleX(1)}
+.opt.on{padding-left:16px;color:var(--burgundy)}
+.opt.on::after{transform:translateY(-50%) scaleX(1)}
+.qnav{margin-top:46px;display:flex;justify-content:space-between;align-items:center}
+
+/* ---------- report ---------- */
+#report{background:var(--ivory);padding:0 0 14vh}
+.rep-cover{background:var(--oxblood);color:var(--cream);text-align:center;padding:14vh 8vw 12vh;margin-bottom:0}
+.rep-cover .house{font-size:10px;letter-spacing:.42em;text-transform:uppercase;color:var(--champagne);margin-bottom:46px}
+.rep-cover h1{font-family:'Cormorant Garamond',serif;font-size:clamp(38px,7vw,66px);font-weight:300;line-height:1.1}
+.rep-cover h1 em{font-style:italic;color:var(--gold-soft)}
+.rep-cover .for{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:rgba(243,235,224,.5);margin-top:30px}
+
+.triad{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);margin:0}
+.triad div{background:var(--parchment);padding:38px 22px;text-align:center}
+.triad .lbl{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.triad .val{font-family:'Cormorant Garamond',serif;font-size:clamp(17px,2.6vw,23px);color:var(--burgundy);font-weight:400;line-height:1.25}
+
+.sec{padding:8vh 0 0}
+.sec h2{font-family:'Cormorant Garamond',serif;font-size:10px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--gold);font-family:'Jost',sans-serif;font-weight:400;margin-bottom:26px}
+.sec .eyebrow-lg{font-family:'Cormorant Garamond',serif;font-size:clamp(30px,5vw,44px);font-weight:300;
+  color:var(--oxblood);line-height:1.15;margin-bottom:14px}
+.sec .lede-it{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:21px;color:var(--gold);margin-bottom:26px}
+.sec p{font-size:16.5px;line-height:1.95;color:var(--ink);max-width:640px;font-weight:300}
+.sec .foot{font-size:14px;font-style:italic;color:var(--muted);margin-top:22px;font-family:'Cormorant Garamond',serif;font-size:16px}
+.orn{text-align:center;color:var(--champagne);font-size:15px;letter-spacing:.7em;margin:7vh 0 0}
+
+.lens{background:var(--parchment);padding:8vh 0;margin-top:9vh}
+.lens ul{list-style:none;margin-top:8px}
+.lens li{font-family:'Cormorant Garamond',serif;font-size:18.5px;line-height:1.75;padding:17px 0;
+  border-bottom:1px solid var(--rule);color:var(--ink)}
+.lens li:last-child{border-bottom:none}
+.disclosure{font-size:13px;color:var(--muted);font-style:italic;margin-top:26px;line-height:1.8;
+  font-family:'Cormorant Garamond',serif;font-size:15px;max-width:620px}
+.caveat{border-left:2px solid var(--gold);padding:11px 0 11px 18px;margin-top:18px;font-size:14px;
+  color:var(--muted);font-family:'Cormorant Garamond',serif;font-size:15.5px;font-style:italic}
+
+.closing{text-align:center;padding:9vh 8vw 0;max-width:620px;margin:0 auto}
+.closing p{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:var(--muted);line-height:1.9}
+
+/* ---------- internal ---------- */
+.internal{background:#241016;color:#E8DCCB;min-height:100vh;padding:7vh 0 12vh}
+.internal .wrap{max-width:900px}
+.internal h1{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:var(--gold-soft)}
+.internal .warn{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#C9736F;margin-bottom:20px}
+.internal h3{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);
+  margin:46px 0 16px;padding-bottom:9px;border-bottom:1px solid rgba(168,135,75,.24)}
+.internal p,.internal li{font-size:15px;line-height:1.85;color:#DCCFBD}
+.internal ul{list-style:none}
+.internal li{padding:11px 0 11px 20px;position:relative}
+.internal li::before{content:'\2014';position:absolute;left:0;color:var(--gold);opacity:.6}
+.typegrid{display:grid;gap:1px;background:rgba(168,135,75,.2);margin-top:12px}
+.typegrid div{background:#2C141B;padding:24px}
+.typegrid .t{font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:9px}
+.typegrid .n{font-family:'Cormorant Garamond',serif;font-size:23px;color:#EFE3D2;margin-bottom:10px}
+
+.keycard{text-align:center;padding:52px 30px;border:1px solid var(--gold);margin:34px 0}
+.keycard .kn{font-family:'Cormorant Garamond',serif;font-size:36px;color:var(--gold-soft);letter-spacing:.06em}
+.keycard .ks{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#C9BBA6;margin-top:12px}
+.keycard .kb{font-size:15px;color:#DCCFBD;max-width:520px;margin:20px auto 0;line-height:1.85}
+
+.vault{display:grid;gap:1px;background:var(--rule);margin-top:30px}
+.vault button{background:var(--parchment);border:none;text-align:left;padding:22px 26px;cursor:pointer;
+  font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--ink);transition:background .4s}
+.vault button:hover{background:var(--cream)}
+.vault .meta{display:block;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--muted);margin-top:6px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:26px}
+.pair select{width:100%;font-family:'Cormorant Garamond',serif;font-size:18px;padding:12px 0;
+  background:transparent;border:none;border-bottom:1px solid var(--rule);color:var(--ink)}
+
+.foot{text-align:center;font-size:10px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--muted);padding:7vh 0 4vh}
+.tiny{font-size:11px;color:#9A8577;letter-spacing:.1em;margin-top:40px;line-height:1.9;text-transform:none}
+
+@media(max-width:680px){
+  .row2,.pair{grid-template-columns:1fr}
+  .triad{grid-template-columns:1fr}
+  .wrap{padding:0 7vw}
+  .opt{font-size:17.5px;padding:22px 36px 22px 2px}
+}
+@media print{
+  .stars,.qnav,.btn,.btn-text,.progress{display:none!important}
+  body{background:#fff}
+  .sec{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<svg class="stars" id="stars" aria-hidden="true"></svg>
+<div class="progress" id="prog" style="display:none"><i id="progbar"></i></div>
+
+<div class="stage">
+
+<!-- ============ COVER ============ -->
+<section class="screen on" id="cover">
+  <div class="wrap">
+    <div class="house">Revolution Dating &nbsp;&middot;&nbsp; Est. 1991</div>
+    <h1 class="serif">The Revolution<br><em>Profile</em></h1>
+    <div class="sub">A Private Relationship Assessment</div>
+    <div class="divider"></div>
+    <p class="blurb">
+      Twenty questions. No right answers. What follows is not a personality test
+      and not a quiz &mdash; it is an attempt to understand how you actually love,
+      which is rarely the same as what you would say you are looking for.
+      Please answer instinctively.
+    </p>
+    <div style="margin-top:48px"><button class="btn" id="begin">Begin</button></div>
+    <div style="margin-top:26px"><button class="btn-text" id="toVault">Matchmaker Access</button></div>
+  </div>
+</section>
+
+<!-- ============ INTAKE ============ -->
+<section class="screen" id="intake">
+  <div class="wrap">
+    <div class="eyebrow">Part One &middot; For the File</div>
+    <h2 class="display serif">Before we begin,<br>a little about you.</h2>
+    <p class="lede">None of this is scored. It tells your matchmaker who you are, and
+      it allows us to prepare the interpretive sections of your profile.</p>
+    <div class="fields" id="fields"></div>
+    <div class="err" id="intakeErr"></div>
+    <div style="margin-top:40px"><button class="btn btn-dark" id="toQuiz">Continue</button></div>
+  </div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section class="screen" id="quiz">
+  <div class="wrap">
+    <div class="qmeta">
+      <span class="qnum" id="qnum"></span>
+      <span class="qmov" id="qmov"></span>
+    </div>
+    <div class="qnote serif" id="qnote" style="display:none"></div>
+    <h2 class="qtext serif" id="qtext"></h2>
+    <div class="opts" id="opts"></div>
+    <div class="qnav">
+      <button class="btn-text" id="back">&larr; Back</button>
+      <span class="qmov" id="hint">Choose the one that is most true</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REPORT ============ -->
+<section class="screen" id="report"></section>
+
+<!-- ============ INTERNAL ============ -->
+<section class="screen internal" id="internal"></section>
+
+</div>
+
+<script type="module">
+import { QUESTIONS, MOVEMENTS } from './src/questions.js';
+import { INTAKE_FIELDS, validateIntake } from './src/intake.js';
+import { score } from './src/scoring.js';
+import { clientReport } from './src/report-client.js';
+import { matchmakerReport } from './src/report-matchmaker.js';
+import { bestFitKey, matchKey } from './src/compatibility.js';
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ROMAN = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+
+/* ---------- celestial backdrop ---------- */
+(function sky(){
+  const svg = $('stars');
+  const w = window.innerWidth, h = window.innerHeight;
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  let out = '';
+  // deterministic scatter so it never flickers between renders
+  let s = 20260923;
+  const rnd = () => (s = (s * 1103515245 + 12345) % 2147483648) / 2147483648;
+  for (let i = 0; i < 46; i++) {
+    out += `<circle cx="${(rnd()*w).toFixed(1)}" cy="${(rnd()*h).toFixed(1)}" r="${(rnd()*1.1+.35).toFixed(2)}" opacity="${(rnd()*.45+.18).toFixed(2)}"/>`;
+  }
+  svg.innerHTML = out;
+})();
+
+/* ---------- state ---------- */
+const state = { intake:{}, answers:{}, i:0, profile:null };
+const VAULT = 'revolution.profiles.v1';
+const loadVault = () => { try { return JSON.parse(localStorage.getItem(VAULT)) || []; } catch { return []; } };
+const saveVault = (v) => localStorage.setItem(VAULT, JSON.stringify(v));
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  $(id).classList.add('on');
+  $('prog').style.display = (id === 'quiz') ? 'block' : 'none';
+  window.scrollTo({ top:0, behavior:'instant' });
+}
+
+/* ---------- intake ---------- */
+function buildIntake(){
+  const zones = (Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : [])
+    .filter(z => /^(America|Europe|Asia|Australia|Africa|Pacific|Atlantic|Indian)\//.test(z));
+  const common = ['America/New_York','America/Chicago','America/Denver','America/Los_Angeles'];
+  const tzList = [...common, ...zones.filter(z => !common.includes(z))];
+
+  const html = INTAKE_FIELDS.map(f => {
+    const opt = f.required ? '' : ` <span class="opt">optional</span>`;
+    const help = f.help ? `<div class="help">${esc(f.help)}</div>` : '';
+
+    if (f.type === 'checkbox-inverse'){
+      return `<label class="checkline"><input type="checkbox" data-k="${f.key}" id="noTime"><span>${esc(f.label)}</span></label>`;
+    }
+    if (f.type === 'multiselect'){
+      return `<div class="field"><label>${esc(f.label)}${opt}</label>
+        <div class="chips" data-multi="${f.key}">${f.options.map(o=>`<button type="button" class="chip" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>${help}</div>`;
+    }
+    if (f.type === 'select'){
+      return `<div class="field"><label>${esc(f.label)}${opt}</label>
+        <select data-k="${f.key}"><option value=""></option>${f.options.map(o=>`<option>${esc(o)}</option>`).join('')}</select>${help}</div>`;
+    }
+    if (f.type === 'timezone'){
+      return `<div class="field"><label>${esc(f.label)}${opt}</label>
+        <select data-k="${f.key}"><option value="">Not sure</option>${tzList.map(z=>`<option${z==='America/New_York'?' selected':''}>${esc(z)}</option>`).join('')}</select>${help}</div>`;
+    }
+    const t = f.type === 'date' ? 'date' : f.type === 'time' ? 'time' : 'text';
+    return `<div class="field"><label>${esc(f.label)}${opt}</label>
+      <input type="${t}" data-k="${f.key}" placeholder="${esc(f.placeholder||'')}">${help}</div>`;
+  }).join('');
+
+  $('fields').innerHTML = html;
+
+  $('fields').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    chip.classList.toggle('on');
+    const box = chip.closest('[data-multi]');
+    state.intake[box.dataset.multi] = [...box.querySelectorAll('.chip.on')].map(c => c.dataset.v);
+  });
+  $('fields').addEventListener('input', e => {
+    const el = e.target;
+    if (el.id === 'noTime'){
+      state.intake.birthTimeKnown = !el.checked;
+      const t = $('fields').querySelector('[data-k="birthTime"]');
+      if (t){ t.disabled = el.checked; if (el.checked) t.value = ''; t.style.opacity = el.checked ? .32 : 1; }
+      return;
+    }
+    if (el.dataset.k) state.intake[el.dataset.k] = el.value;
+    if (el.dataset.k === 'birthTime' && el.value) state.intake.birthTimeKnown = true;
+  });
+  $('fields').addEventListener('change', e => {
+    if (e.target.dataset.k) state.intake[e.target.dataset.k] = e.target.value;
+  });
+}
+
+/* ---------- quiz ---------- */
+function renderQ(){
+  const q = QUESTIONS[state.i];
+  $('progbar').style.width = ((state.i) / QUESTIONS.length * 100) + '%';
+  $('qnum').textContent = `${ROMAN[state.i+1]} of ${ROMAN[QUESTIONS.length]}`;
+  $('qmov').textContent = MOVEMENTS[q.movement] || '';
+  $('qtext').textContent = q.prompt;
+  const note = $('qnote');
+  if (q.note){ note.textContent = q.note; note.style.display = 'block'; } else note.style.display = 'none';
+
+  $('opts').innerHTML = q.options.map(o =>
+    `<button class="opt${state.answers[q.id]===o.id?' on':''}" data-o="${o.id}">${esc(o.text)}</button>`
+  ).join('');
+
+  $('back').style.visibility = state.i === 0 ? 'hidden' : 'visible';
+}
+
+$('opts').addEventListener('click', e => {
+  const b = e.target.closest('.opt');
+  if (!b) return;
+  const q = QUESTIONS[state.i];
+  state.answers[q.id] = b.dataset.o;
+  b.classList.add('on');
+  setTimeout(() => {
+    if (state.i < QUESTIONS.length - 1){ state.i++; renderQ(); $('quiz').style.animation='none'; void $('quiz').offsetWidth; $('quiz').style.animation=''; }
+    else finish();
+  }, 330);
+});
+$('back').onclick = () => { if (state.i > 0){ state.i--; renderQ(); } };
+
+/* ---------- finish ---------- */
+function finish(){
+  $('progbar').style.width = '100%';
+  const p = score(state.answers, state.intake);
+  state.profile = p;
+
+  const v = loadVault();
+  v.push({
+    id: Date.now().toString(36),
+    name: state.intake.preferredName || 'Client',
+    at: new Date().toISOString(),
+    intake: state.intake,
+    answers: state.answers
+  });
+  saveVault(v);
+
+  renderReport(clientReport(p));
+  show('report');
+}
+
+/* ---------- client report ---------- */
+function renderReport(r){
+  const secs = r.sections.map((s, i) => `
+    <div class="sec">
+      <div class="wrap">
+        <h2>${esc(s.title)}</h2>
+        ${s.eyebrow ? `<div class="eyebrow-lg serif">${esc(s.eyebrow)}</div>` : ''}
+        ${s.lede ? `<div class="lede-it">${esc(s.lede)}</div>` : ''}
+        <p>${esc(s.body)}</p>
+        ${s.footnote ? `<div class="foot">${esc(s.footnote)}</div>` : ''}
+      </div>
+      ${i < r.sections.length - 1 ? '<div class="orn">&#10022;</div>' : ''}
+    </div>`).join('');
+
+  const lens = (L) => !L ? '' : `
+    <div class="lens"><div class="wrap">
+      <h2>${esc(L.title)}</h2>
+      <ul>${L.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul>
+      ${L.tension ? `<p class="disclosure">${esc(L.tension)}</p>` : ''}
+      ${(L.caveats||[]).map(c => `<div class="caveat">${esc(c)}</div>`).join('')}
+      <p class="disclosure">${esc(L.disclosure || '')} ${esc(L.framing || '')}</p>
+    </div></div>`;
+
+  $('report').innerHTML = `
+    <div class="rep-cover">
+      <div class="house">Revolution Dating &middot; Private &amp; Confidential</div>
+      <h1 class="serif">Your Romantic<br><em>Signature</em></h1>
+      <div class="for">Prepared for ${esc(r.name)}</div>
+    </div>
+    <div class="triad">
+      <div><div class="lbl">Primary Archetype</div><div class="val serif">${esc(r.archetype.primary)}</div></div>
+      <div><div class="lbl">Hidden Archetype</div><div class="val serif">${esc(r.archetype.hidden)}</div></div>
+      <div><div class="lbl">Romantic Shadow</div><div class="val serif">${esc(r.archetype.shadow)}</div></div>
+    </div>
+    ${secs}
+    ${lens(r.astrology)}
+    ${lens(r.numerology)}
+    <div class="closing"><p>${esc(r.closing)}</p></div>
+    <div class="foot">
+      <button class="btn btn-dark" onclick="window.print()">Save as PDF</button>
+      <div class="tiny">Revolution Dating &middot; Palm Beach &amp; New York</div>
+    </div>`;
+}
+
+/* ---------- matchmaker vault ---------- */
+function renderVault(){
+  const v = loadVault();
+  const opts = v.map(p => `<option value="${p.id}">${esc(p.name)} &middot; ${new Date(p.at).toLocaleDateString()}</option>`).join('');
+
+  $('internal').innerHTML = `
+    <div class="wrap">
+      <div class="warn">Confidential &middot; Internal Use Only</div>
+      <h1 class="serif">The Matchmaker's File</h1>
+      <p style="margin-top:14px;color:#B9A894">Completed profiles are stored in this browser only. Nothing is transmitted.</p>
+
+      <h3>Completed Profiles &middot; ${v.length}</h3>
+      ${v.length ? `<div class="vault">${v.map(p =>
+        `<button data-open="${p.id}">${esc(p.name)}<span class="meta">${new Date(p.at).toLocaleString()} &middot; open private report</span></button>`
+      ).join('')}</div>` : `<p style="color:#9A8577">No profiles yet.</p>`}
+
+      ${v.length >= 2 ? `
+      <h3>Compare Two Clients &middot; The Match Key</h3>
+      <div class="pair">
+        <select id="selA">${opts}</select>
+        <select id="selB">${opts}</select>
+      </div>
+      <div style="margin-top:28px"><button class="btn" id="doCompare">Generate Match Key</button></div>` : ''}
+
+      <div id="out"></div>
+      <div style="margin-top:60px"><button class="btn-text" id="leave">&larr; Return</button></div>
+    </div>`;
+
+  $('leave').onclick = () => show('cover');
+  $('internal').querySelectorAll('[data-open]').forEach(b => {
+    b.onclick = () => {
+      const rec = loadVault().find(x => x.id === b.dataset.open);
+      renderMatchmaker(matchmakerReport(score(rec.answers, rec.intake)));
+    };
+  });
+  const cmp = $('doCompare');
+  if (cmp) cmp.onclick = () => {
+    const vv = loadVault();
+    const A = vv.find(x => x.id === $('selA').value);
+    const B = vv.find(x => x.id === $('selB').value);
+    if (!A || !B || A.id === B.id){ $('out').innerHTML = `<p style="color:#C9736F;margin-top:24px">Select two different clients.</p>`; return; }
+    renderMatch(matchKey(score(A.answers,A.intake), score(B.answers,B.intake), { aName:A.name, bName:B.name }));
+  };
+}
+
+const ul = (arr) => `<ul>${(arr||[]).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+
+function renderMatchmaker(m){
+  $('out').innerHTML = `
+    <h3>${esc(m.name)} &middot; ${esc(m.completeness)}</h3>
+    <div class="typegrid">
+      ${['stated','attraction','relationship','growth'].map(k => `
+        <div><div class="t">${k} type</div>
+        <div class="n serif">${esc(m.types[k].label)}</div>
+        <p>${esc(m.types[k].body)}</p></div>`).join('')}
+    </div>
+    ${m.archetype.note ? `<p style="color:#C9736F;margin-top:20px">${esc(m.archetype.note)}</p>` : ''}
+    <h3>What They Aren't Saying</h3>${ul(m.whatTheyArentSaying)}
+    <h3>Stated vs. Demonstrated</h3>${ul(m.statedVsDemonstrated)}
+    <h3>What Creates Chemistry</h3>${ul(m.createsChemistry)}
+    <h3>What Sustains It</h3>${ul(m.sustainsChemistry)}
+    <h3>What Will Kill Attraction</h3>${ul(m.killsAttraction)}
+    <h3>How They Need To Be Pursued</h3>${ul(m.howToPursue)}
+    <h3>How They Respond To Distance</h3>${ul(m.responseToDistance)}
+    <h3>How They Fight</h3>${ul(m.howTheyFight)}
+    <h3>How They Repair</h3>${ul(m.howTheyRepair)}
+    <h3>Unlikely To Compromise On</h3>${ul(m.wontCompromise)}
+    <h3>Where Stated Dealbreakers Appear Flexible</h3>${ul(m.flexibleDealbreakers)}
+    <h3>Consider Introducing</h3>${ul(m.consider)}
+    <h3>Approach Carefully</h3>${ul(m.approachCarefully)}
+    <h3>Questions To Ask In Person</h3>${ul(m.questionsToAsk)}
+    <p class="tiny">${esc(m.footer)}</p>`;
+  window.scrollTo({ top: 400, behavior:'smooth' });
+}
+
+function renderMatch(k){
+  const f = k.fit;
+  $('out').innerHTML = `
+    <div class="keycard">
+      <div class="kn serif">${esc(f.name)}</div>
+      <div class="ks">${esc(f.subtitle)}</div>
+      <div class="kb">${esc(f.body)}</div>
+    </div>
+    <h3>Why This Could Work</h3>${ul(k.whyWork)}
+    <h3>Assessment Reasoning</h3>${ul(f.reasons)}
+    <h3>Where They Naturally Understand Each Other</h3>${ul(k.natural)}
+    <h3>Where They May Misread Each Other</h3>${ul(k.misread)}
+    <h3>Love-Language Translation</h3>${ul(k.loveTranslation.map(t => t.note))}
+    <h3>Conflict Translation</h3>
+    ${ul([k.conflictTranslation.note, ...k.conflictTranslation.repairRows.map(r => r.note)])}
+    <h3>Attraction Dynamic</h3>${ul([k.attraction.note])}
+    <h3>Lifestyle Alignment</h3>${ul([k.lifestyle.note])}
+    <h3>Long-Term Alignment</h3>${ul([k.longTerm.note, k.longTerm.kidsNote].filter(Boolean))}
+    <h3>What ${esc(k.aName)} Needs To Understand About ${esc(k.bName)}</h3>${ul(k.aShouldUnderstand)}
+    <h3>What ${esc(k.bName)} Needs To Understand About ${esc(k.aName)}</h3>${ul(k.bShouldUnderstand)}
+    <h3>What The Matchmaker Should Watch</h3>${ul(k.watch)}
+    <h3>How To Introduce ${esc(k.bName)} To ${esc(k.aName)}</h3>${ul(k.intro.toA)}
+    <h3>How To Introduce ${esc(k.aName)} To ${esc(k.bName)}</h3>${ul(k.intro.toB)}
+    <p class="tiny">Confidential. Revolution Dating internal use only.</p>`;
+  window.scrollTo({ top: 400, behavior:'smooth' });
+}
+
+/* ---------- wiring ---------- */
+$('begin').onclick = () => { show('intake'); };
+$('toVault').onclick = () => { renderVault(); show('internal'); };
+$('toQuiz').onclick = () => {
+  if (state.intake.birthTimeKnown === undefined) state.intake.birthTimeKnown = !!state.intake.birthTime;
+  const v = validateIntake(state.intake);
+  if (!v.valid){ $('intakeErr').textContent = 'Still needed: ' + v.missing.join(', ') + '.'; return; }
+  $('intakeErr').textContent = '';
+  state.i = 0; renderQ(); show('quiz');
+};
+
+buildIntake();
+</script>
+</body>
+</html>

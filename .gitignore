@@ -1,0 +1,18 @@
+# ---------------------------------------------------------------
+# Kept OUT of the published repository.
+#
+# docs/SCORING-MAP.md is the complete internal scoring logic and is
+# marked confidential. test/ asserts against the hidden dimension
+# keys and reveals the same material. Both stay local.
+#
+# NOTE: src/ must be published for the assessment to run in a browser,
+# so the scoring logic is readable by anyone who opens developer tools.
+# Excluding these two directories is defence in depth, not real
+# protection. Hiding the engine requires moving scoring server-side.
+# ---------------------------------------------------------------
+docs/
+test/
+
+node_modules/
+.DS_Store
+*.log
