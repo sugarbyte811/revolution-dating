@@ -181,23 +181,23 @@ export const LOVE_CHANNEL_LABEL = {
 /** Narrative phrasing, so reports never read like a checklist. */
 export const LOVE_CHANNEL_PHRASE = {
   receive: {
-    acts: 'having something handled before you had to ask',
+    acts: 'having something handled before it had to be asked for',
     time: 'unhurried, undivided attention',
-    words: 'being told, in specific language, what you are to someone',
-    touch: 'physical closeness that asks nothing of you',
-    gifts: 'evidence that you were thought about while you were not there'
+    words: 'hearing it said out loud, in specific language',
+    touch: 'physical closeness that asks for nothing in return',
+    gifts: 'evidence of having been thought about while absent'
   },
   give: {
     acts: 'quietly lifting the load out of their week without announcing it',
-    time: 'clearing your calendar and simply being present',
-    words: 'telling someone precisely what you see in them',
+    time: 'clearing the calendar and simply being present',
+    words: 'saying out loud precisely what is admirable in someone',
     touch: 'closing the physical distance',
     gifts: 'finding the exact thing that will land'
   },
   reassure: {
     acts: 'a practical act that proves the ground is still there',
     time: 'protected hours with no agenda',
-    words: 'being told plainly where you stand',
+    words: 'being told plainly where things stand',
     touch: 'being physically held onto',
     gifts: 'a gesture that shows deliberate thought'
   }
@@ -224,43 +224,50 @@ export const CONFLICT_STYLE_META = {
     label: 'The Pursuer',
     short: 'moves toward the disconnection',
     short2: 'move toward the disconnection rather than away from it',
-    body: 'When distance opens, you close it. Silence reads as danger, so you follow the conversation rather than let it sit. Handled well, this is what keeps a relationship from quietly drifting apart.'
+    body: 'When distance opens, you close it. Silence reads as danger, so you follow the conversation rather than let it sit. Handled well, this is what keeps a relationship from quietly drifting apart.',
+    body3: 'When distance opens, they close it. Silence reads as danger, so they follow the conversation rather than let it sit. Handled well, this is what keeps a relationship from quietly drifting apart.'
   },
   processor: {
     label: 'The Processor',
     short: 'needs to think before speaking',
     short2: 'need to think before you speak',
-    body: 'You do not want to say the wrong version of a true thing. You need to turn it over privately first, then return with something accurate. The delay is precision, not avoidance.'
+    body: 'You do not want to say the wrong version of a true thing. You need to turn it over privately first, then return with something accurate. The delay is precision, not avoidance.',
+    body3: 'They do not want to say the wrong version of a true thing. They need to turn it over privately first, then return with something accurate. The delay is precision, not avoidance.'
   },
   peacemaker: {
     label: 'The Peacemaker',
     short: 'protects the temperature of the room',
     short2: 'protect the temperature of the room',
-    body: 'You de-escalate instinctively, often with warmth or humour, and you would rather let a charge dissipate than force it into words. The gift is that little becomes permanent damage.'
+    body: 'You de-escalate instinctively, often with warmth or humour, and you would rather let a charge dissipate than force it into words. The gift is that little becomes permanent damage.',
+    body3: 'They de-escalate instinctively, often with warmth or humour, and would rather let a charge dissipate than force it into words. The gift is that little becomes permanent damage.'
   },
   defender: {
     label: 'The Defender',
     short: 'protects the record',
     short2: 'protect the record',
-    body: 'When you feel mischaracterised, accuracy becomes urgent. You will argue the specifics because being misunderstood is the actual injury. Underneath the position is usually a request to be seen correctly.'
+    body: 'When you feel mischaracterised, accuracy becomes urgent. You will argue the specifics because being misunderstood is the actual injury. Underneath the position is usually a request to be seen correctly.',
+    body3: 'When they feel mischaracterised, accuracy becomes urgent. They will argue the specifics because being misunderstood is the actual injury. Underneath the position is usually a request to be seen correctly.'
   },
   withdrawer: {
     label: 'The Withdrawer',
     short: 'goes quiet to stay regulated',
     short2: 'go quiet in order to stay regulated',
-    body: 'You step back to keep yourself from escalating. Distance is a form of care in your system, though it is frequently read as punishment by people who are wired to pursue.'
+    body: 'You step back to keep yourself from escalating. Distance is a form of care in your system, though it is frequently read as punishment by people who are wired to pursue.',
+    body3: 'They step back to keep themselves from escalating. Distance is a form of care in their system, though it is frequently read as punishment by people who are wired to pursue.'
   },
   fixer: {
     label: 'The Fixer',
     short: 'solves before feeling',
     short2: 'solve the problem before you feel it',
-    body: 'You move toward the practical remedy. It is a genuine form of love and it is also how you avoid sitting inside an unresolved feeling for very long.'
+    body: 'You move toward the practical remedy. It is a genuine form of love and it is also how you avoid sitting inside an unresolved feeling for very long.',
+    body3: 'They move toward the practical remedy. It is a genuine form of love and it is also how they avoid sitting inside an unresolved feeling for very long.'
   },
   immediateResolver: {
     label: 'The Immediate Resolver',
     short: 'cannot carry it overnight',
     short2: 'cannot comfortably carry it overnight',
-    body: 'An open rupture costs you sleep. You would rather have the conversation badly tonight than correctly next week, because the unfinished state is worse to you than the conflict itself.'
+    body: 'An open rupture costs you sleep. You would rather have the conversation badly tonight than correctly next week, because the unfinished state is worse to you than the conflict itself.',
+    body3: 'An open rupture costs them sleep. They would rather have the conversation badly tonight than correctly next week, because the unfinished state is worse to them than the conflict itself.'
   }
 };
 
@@ -288,7 +295,7 @@ export const REPAIR_META = {
   },
   discussion: {
     label: 'Full conversation',
-    phrase: 'an unhurried talk where both of you genuinely understand it'
+    phrase: 'an unhurried talk where both people genuinely understand it'
   },
   space: {
     label: 'Decompression first',
@@ -315,11 +322,11 @@ export const ONSET_META = {
   },
   recognition: {
     label: 'Being accurately seen',
-    phrase: 'the moment someone notices what other people miss about you'
+    phrase: 'the moment someone notices what other people miss'
   },
   attentiveness: {
     label: 'Evidence of thought',
-    phrase: 'proof that you were listened to and then acted upon'
+    phrase: 'proof of having been listened to, and then acted upon'
   },
   magnetism: {
     label: 'Unexplained charge',
@@ -340,10 +347,10 @@ export const ATTRACTION_KILL = [
 export const KILL_META = {
   predictability: 'the week becomes scriptable',
   deference: 'a partner stops holding their own position',
-  invisibility: 'warmth without any real curiosity about your interior',
+  invisibility: 'warmth arrives without any real curiosity about the interior life underneath it',
   noSpark: 'physical charge that never arrives or quietly leaves',
   inconsistency: 'effort that arrives unevenly',
-  disrespect: 'being handled as though you had not thought it through'
+  disrespect: 'being handled as though the thinking had not already been done'
 };
 
 /** Conflict triggers - the specific provocations. */
@@ -352,11 +359,11 @@ export const TRIGGERS = ['disrespect', 'exclusion', 'withdrawal', 'notBeingKnown
 export const TRIGGER_META = {
   disrespect: {
     label: 'Condescension',
-    phrase: 'being spoken to as though you had not already thought it through'
+    phrase: 'being spoken to as though the thinking had not already been done'
   },
   exclusion: {
     label: 'Being routed around',
-    phrase: 'discovering something was decided or handled without you'
+    phrase: 'discovering something was decided or handled without being consulted'
   },
   withdrawal: {
     label: 'Emotional flatness',

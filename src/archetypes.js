@@ -38,7 +38,7 @@ export const ARCHETYPES = {
     strain:
       'When the regard thins, you do not usually complain. You become more exacting, and the relationship acquires a quiet entrance exam nobody told the other person about.',
     bestBrought:
-      'a partner with their own gravity, who admires you out loud and is not managed by you'
+      'a partner with their own gravity, who gives admiration out loud and cannot be quietly managed'
   },
 
   muse: {
@@ -55,7 +55,7 @@ export const ARCHETYPES = {
     strain:
       'When you stop feeling seen, you tend to become more charming rather than more honest, which puts you further out of reach of the thing you wanted.',
     bestBrought:
-      'a partner who is genuinely curious, articulate about what they see, and not intimidated by your effect on a room'
+      'a partner who is genuinely curious, articulate about what they notice, and unthreatened by someone who draws a room'
   },
 
   devotee: {
@@ -106,7 +106,7 @@ export const ARCHETYPES = {
     strain:
       'Under strain you smooth. You will hold a great deal quietly in order to keep the surface calm, and the cost usually appears all at once, late.',
     bestBrought:
-      'a partner who brings their own difficulty forward voluntarily, so you never have to go looking for it'
+      'a partner who brings their own difficulty forward voluntarily, so it never has to be gone looking for'
   },
 
   flame: {
@@ -123,7 +123,7 @@ export const ARCHETYPES = {
     strain:
       'When the charge drops, you may chase it: provoke, escalate, or look for voltage elsewhere. The heat is trying to restart something.',
     bestBrought:
-      'a partner who matches your appetite and is secure enough that your intensity does not have to be rationed'
+      'a partner who matches that appetite and is secure enough that intensity never has to be rationed'
   },
 
   architect: {
@@ -140,7 +140,7 @@ export const ARCHETYPES = {
     strain:
       'When the relationship feels unstable, you retreat into the manageable. Projects, logistics, optimisation. It looks like distance and it is actually an attempt to stabilise.',
     bestBrought:
-      'a partner who wants the same structure and who also pulls you out of it now and then'
+      'a partner who wants the same structure and who also disrupts it now and then'
   },
 
   voyager: {
@@ -157,7 +157,7 @@ export const ARCHETYPES = {
     strain:
       'When you feel confined, you create distance before you create a conversation. The exit gets quietly maintained long before it is used.',
     bestBrought:
-      'a partner with a full life of their own who chooses you daily and does not require proof'
+      'a partner with a full life of their own who keeps choosing, and does not require proof'
   },
 
   oracle: {
@@ -174,7 +174,7 @@ export const ARCHETYPES = {
     strain:
       'When something feels wrong, you interpret rather than ask. You can build a complete and convincing account of a partner’s interior without ever checking it against them.',
     bestBrought:
-      'a partner who is emotionally legible, says things plainly, and does not make you guess'
+      'a partner who is emotionally legible, says things plainly, and leaves nothing to be guessed at'
   }
 };
 

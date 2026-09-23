@@ -236,7 +236,7 @@ function fightAndRepair(p) {
 
   if (style) {
     const m = CONFLICT_STYLE_META[style.key];
-    fights.push(`${m.label}: ${m.short}. ${m.body}`);
+    fights.push(`${m.label}: ${m.short}. ${m.body3}`);
   }
   const trigger = p.summary.triggerTop[0];
   if (trigger) fights.push(`Primary trigger: ${TRIGGER_META[trigger.key].phrase}.`);
@@ -299,8 +299,11 @@ function whoToConsider(p) {
   const arc = ARCHETYPES[p.archetype.primary];
   const hidden = ARCHETYPES[p.archetype.hidden];
 
-  consider.push(`Someone who is ${arc.bestBrought}.`);
-  consider.push(`Who is also ${hidden.bestBrought}.`);
+  // bestBrought already begins with "a partner...", so do not prefix an
+  // article - that produced "Someone who is a partner who is...".
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  consider.push(`${cap(arc.bestBrought)}.`);
+  consider.push(`Also, and less obviously: ${hidden.bestBrought}.`);
   if (p.axes.reassurance > 35) consider.push('Someone naturally expressive who offers reassurance without needing to be asked.');
   if (p.axes.conflictEngage < -30) consider.push('Someone who does not pursue during conflict, or who can learn not to quickly.');
   if (p.axes.conflictEngage > 30) consider.push('Someone who will stay in the room rather than withdraw.');

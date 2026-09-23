@@ -16,3 +16,6 @@ test/
 node_modules/
 .DS_Store
 *.log
+
+# Screenshots produced by test/ui-smoke.js
+ui-proof-*.png
