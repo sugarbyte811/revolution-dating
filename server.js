@@ -111,23 +111,6 @@ async function requireAdmin(req, res, next) {
   next();
 }
 
-// TEMPORARY diagnostic - reveals no secret values, only booleans. Remove
-// once the admin_auth seeding issue is confirmed fixed.
-app.get('/api/_diag/admin-auth', async (req, res) => {
-  if (!pool) return res.json({ pool: false });
-  const hasEnv = !!process.env.ADMIN_TOKEN;
-  const envLen = (process.env.ADMIN_TOKEN || '').length;
-  let hasDbRow = false;
-  let dbError = null;
-  try {
-    const { rows } = await pool.query('SELECT 1 FROM admin_auth WHERE id = 1');
-    hasDbRow = rows.length > 0;
-  } catch (e) {
-    dbError = e.message;
-  }
-  res.json({ pool: true, hasEnv, envLen, hasDbRow, dbError });
-});
-
 app.post('/api/admin/login', async (req, res) => {
   if (!pool) return res.status(500).json({ error: 'DATABASE_URL not configured.' });
   const { token } = req.body || {};
