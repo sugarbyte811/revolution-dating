@@ -697,7 +697,6 @@ function renderMatchmaker(m, targetId = 'out'){
     <p><strong>${esc(s.name)}</strong> &middot; ${s.age ?? 'age unknown'} &middot; ${esc(s.location)} &middot; ${esc(s.gender)} &middot; interested in ${esc(s.interestedIn)} &middot; ${esc(s.relationshipGoal)}</p>
     ${m.completeness !== 'Complete' ? `<p style="color:#C9736F">${esc(m.completeness)}</p>` : ''}
 
-    <h3>Who We Should Find For Them</h3><p>${esc(m.whoWeShouldFind)}</p>
     <h3>Top Match Traits</h3>${ul(m.topMatchTraits)}
     <h3>Avoid Matching With</h3>${ul(m.avoidMatchingWith)}
     <h3>Relationship Needs</h3><p>${esc(m.relationshipNeeds)}</p>
@@ -748,7 +747,6 @@ function renderMatchmakerPrintable(m){
       <p><strong>${esc(s.name)}</strong> &middot; ${s.age ?? 'age unknown'} &middot; ${esc(s.location)} &middot; ${esc(s.gender)} &middot; interested in ${esc(s.interestedIn)} &middot; ${esc(s.relationshipGoal)}</p>
       ${m.completeness !== 'Complete' ? `<p style="color:#C9736F">${esc(m.completeness)}</p>` : ''}
 
-      <h3>Who We Should Find For Them</h3><p>${esc(m.whoWeShouldFind)}</p>
       <h3>Top Match Traits</h3>${ul(m.topMatchTraits)}
       <h3>Avoid Matching With</h3>${ul(m.avoidMatchingWith)}
       <h3>Relationship Needs</h3><p>${esc(m.relationshipNeeds)}</p>
