@@ -1,7 +1,6 @@
 services:
   - type: web
     name: revolution-dating
-    env: static
-    plan: free
+    runtime: static
     buildCommand: ""
     staticPublishPath: .
