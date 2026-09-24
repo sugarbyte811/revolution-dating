@@ -10,7 +10,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import nodemailer from 'nodemailer';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, randomBytes, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
+import { promisify } from 'node:util';
 
 import { score } from './src/scoring.js';
 import { clientReport } from './src/report-client.js';
@@ -28,6 +29,24 @@ const pool = process.env.DATABASE_URL
   ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
   : null;
 
+const scrypt = promisify(scryptCb);
+
+async function hashPassword(password) {
+  const salt = randomBytes(16);
+  const derived = await scrypt(password, salt, 64);
+  return `${salt.toString('hex')}:${derived.toString('hex')}`;
+}
+
+async function verifyPassword(password, stored) {
+  if (!stored || typeof password !== 'string' || !password) return false;
+  const [saltHex, hashHex] = stored.split(':');
+  if (!saltHex || !hashHex) return false;
+  const salt = Buffer.from(saltHex, 'hex');
+  const hash = Buffer.from(hashHex, 'hex');
+  const derived = await scrypt(password, salt, 64);
+  return derived.length === hash.length && timingSafeEqual(derived, hash);
+}
+
 async function ensureSchema() {
   if (!pool) return;
   await pool.query(`
@@ -44,32 +63,76 @@ async function ensureSchema() {
   `);
   await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notes TEXT NOT NULL DEFAULT '';`);
   await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;`);
+
+  // Admin password now lives here so the matchmaker can change it from the
+  // dashboard herself, without needing Render access. Seeded once from
+  // ADMIN_TOKEN (if set) so the existing password keeps working after
+  // upgrading; from then on ADMIN_TOKEN is ignored in favor of this table.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_auth (
+      id INT PRIMARY KEY DEFAULT 1,
+      password_hash TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      CHECK (id = 1)
+    );
+  `);
+  const { rows } = await pool.query('SELECT 1 FROM admin_auth WHERE id = 1');
+  if (!rows.length && process.env.ADMIN_TOKEN) {
+    const hash = await hashPassword(process.env.ADMIN_TOKEN);
+    await pool.query(
+      'INSERT INTO admin_auth (id, password_hash) VALUES (1, $1) ON CONFLICT (id) DO NOTHING',
+      [hash]
+    );
+  }
 }
 
-// Admin auth is a single shared secret (one matchmaker desk, no per-user
-// accounts). The browser exchanges it for the same token via /api/admin/login
-// so the UI can show a real login screen instead of a native prompt() -
-// there is no server-side session, the token itself is still what gates
-// every subsequent admin request.
-function requireAdmin(req, res, next) {
+async function checkAdminPassword(candidate) {
+  if (!pool || !candidate) return false;
+  const { rows } = await pool.query('SELECT password_hash FROM admin_auth WHERE id = 1');
+  if (!rows.length) {
+    // Schema not seeded yet (e.g. DATABASE_URL just configured, no ADMIN_TOKEN
+    // ever set) - nothing to check against.
+    return false;
+  }
+  return verifyPassword(candidate, rows[0].password_hash);
+}
+
+// Admin auth is a single shared password (one matchmaker desk, no per-user
+// accounts), hashed and stored in Postgres so it can be changed from the
+// dashboard itself. The browser exchanges it for the same value via
+// /api/admin/login so the UI can show a real login screen instead of a
+// native prompt() - there is no server-side session, the password itself is
+// still what gates every subsequent admin request.
+async function requireAdmin(req, res, next) {
+  if (!pool) return res.status(500).json({ error: 'DATABASE_URL not configured.' });
   const token = req.headers['x-admin-token'];
-  if (!process.env.ADMIN_TOKEN) {
-    return res.status(500).json({ error: 'Server missing ADMIN_TOKEN configuration.' });
-  }
-  if (!token || token !== process.env.ADMIN_TOKEN) {
-    return res.status(401).json({ error: 'Missing or invalid x-admin-token.' });
-  }
+  const ok = await checkAdminPassword(token);
+  if (!ok) return res.status(401).json({ error: 'Missing or invalid x-admin-token.' });
   next();
 }
 
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
+  if (!pool) return res.status(500).json({ error: 'DATABASE_URL not configured.' });
   const { token } = req.body || {};
-  if (!process.env.ADMIN_TOKEN) {
-    return res.status(500).json({ error: 'Server missing ADMIN_TOKEN configuration.' });
+  const ok = await checkAdminPassword(token);
+  if (!ok) return res.status(401).json({ error: 'Incorrect password.' });
+  res.json({ ok: true });
+});
+
+// ─── Admin: change the dashboard password ───────────────────────────────
+app.post('/api/admin/change-password', requireAdmin, async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  if (typeof newPassword !== 'string' || newPassword.length < 8) {
+    return res.status(400).json({ error: 'New password must be at least 8 characters.' });
   }
-  if (!token || token !== process.env.ADMIN_TOKEN) {
-    return res.status(401).json({ error: 'Incorrect password.' });
-  }
+  const ok = await checkAdminPassword(currentPassword);
+  if (!ok) return res.status(401).json({ error: 'Current password is incorrect.' });
+  const hash = await hashPassword(newPassword);
+  await pool.query(
+    `INSERT INTO admin_auth (id, password_hash, updated_at) VALUES (1, $1, now())
+     ON CONFLICT (id) DO UPDATE SET password_hash = $1, updated_at = now()`,
+    [hash]
+  );
   res.json({ ok: true });
 });
 

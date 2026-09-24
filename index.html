@@ -588,11 +588,16 @@ function renderVaultList(){
       <div style="margin-top:28px"><button class="btn" id="doCompare">Compare For Match</button></div>` : ''}
 
       <div id="out"></div>
-      <div style="margin-top:60px"><button class="btn-text" id="signOut">Sign out</button> &middot; <button class="btn-text" id="leave">&larr; Return</button></div>
+      <div style="margin-top:60px">
+        <button class="btn-text" id="changePass">Change password</button> &middot;
+        <button class="btn-text" id="signOut">Sign out</button> &middot;
+        <button class="btn-text" id="leave">&larr; Return</button>
+      </div>
     </div>`;
 
   $('leave').onclick = () => show('cover');
   $('signOut').onclick = () => { adminToken = ''; sessionStorage.removeItem('revolution.admin.token'); renderLogin(); };
+  $('changePass').onclick = () => renderChangePassword();
 
   let searchTimer;
   $('search').oninput = (e) => {
@@ -625,6 +630,49 @@ function renderVaultList(){
     if (!res.ok){ $('out').innerHTML = `<p style="color:#C9736F;margin-top:24px">Could not compare these clients (${res.status}).</p>`; return; }
     const { summary } = await res.json();
     renderMatch(summary);
+  };
+}
+
+function renderChangePassword(){
+  $('internal').innerHTML = `
+    <div class="wrap">
+      <div class="warn">Confidential &middot; Internal Use Only</div>
+      <h1 class="serif">Change Dashboard Password</h1>
+      <p style="margin-top:14px;color:#B9A894">This changes the password for the matchmaker dashboard only. It does not affect any client's assessment or results.</p>
+
+      <div class="field" style="margin-top:24px"><label>Current password</label>
+        <input type="password" id="curPass" autocomplete="current-password"></div>
+      <div class="field" style="margin-top:16px"><label>New password</label>
+        <input type="password" id="newPass1" autocomplete="new-password"></div>
+      <div class="field" style="margin-top:16px"><label>Confirm new password</label>
+        <input type="password" id="newPass2" autocomplete="new-password"></div>
+
+      <p id="cpMsg" style="margin-top:16px"></p>
+      <div style="margin-top:24px"><button class="btn" id="doChangePass">Update Password</button></div>
+      <div style="margin-top:60px"><button class="btn-text" id="cpBack">&larr; Back to dashboard</button></div>
+    </div>`;
+
+  $('cpBack').onclick = () => renderVaultList();
+  $('doChangePass').onclick = async () => {
+    const currentPassword = $('curPass').value;
+    const newPassword = $('newPass1').value;
+    const confirm = $('newPass2').value;
+    const msg = $('cpMsg');
+    if (newPassword.length < 8){ msg.style.color = '#C9736F'; msg.textContent = 'New password must be at least 8 characters.'; return; }
+    if (newPassword !== confirm){ msg.style.color = '#C9736F'; msg.textContent = 'New passwords do not match.'; return; }
+    const res = await adminFetch('/api/admin/change-password', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    if (!res) return;
+    if (!res.ok){
+      const body = await res.json().catch(() => ({}));
+      msg.style.color = '#C9736F'; msg.textContent = body.error || 'Could not update password.';
+      return;
+    }
+    adminToken = newPassword;
+    sessionStorage.setItem('revolution.admin.token', adminToken);
+    msg.style.color = '#8FB998'; msg.textContent = 'Password updated.';
   };
 }
 
