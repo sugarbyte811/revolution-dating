@@ -156,6 +156,15 @@ app.patch('/api/admin/profiles/:id', requireAdmin, async (req, res) => {
   res.json({ ok: true, notes, active });
 });
 
+// ─── Admin: the client's own dossier, for PDF download from the dashboard ──
+app.get('/api/admin/profiles/:id/dossier', requireAdmin, async (req, res) => {
+  if (!pool) return res.status(500).json({ error: 'DATABASE_URL not configured.' });
+  const row = await getProfile(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Profile not found.' });
+  const p = score(row.answers, row.intake);
+  res.json({ name: row.name, report: clientReport(p) });
+});
+
 // ─── Admin: private Matchmaker Profile for one client ───────────────────
 app.get('/api/admin/profiles/:id/matchmaker', requireAdmin, async (req, res) => {
   if (!pool) return res.status(500).json({ error: 'DATABASE_URL not configured.' });
