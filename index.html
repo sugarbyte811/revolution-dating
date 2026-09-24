@@ -282,8 +282,6 @@ import { QUESTIONS, MOVEMENTS } from './src/questions.js';
 import { INTAKE_FIELDS, validateIntake } from './src/intake.js';
 import { score } from './src/scoring.js';
 import { clientReport } from './src/report-client.js';
-import { matchmakerReport } from './src/report-matchmaker.js';
-import { bestFitKey, matchKey } from './src/compatibility.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -343,9 +341,9 @@ function buildIntake(){
       return `<div class="field"><label>${esc(f.label)}${opt}</label>
         <select data-k="${f.key}"><option value="">Not sure</option>${tzList.map(z=>`<option${z==='America/New_York'?' selected':''}>${esc(z)}</option>`).join('')}</select>${help}</div>`;
     }
-    const t = f.type === 'date' ? 'date' : f.type === 'time' ? 'time' : 'text';
+    const t = f.type === 'date' ? 'date' : f.type === 'time' ? 'time' : f.type === 'email' ? 'email' : 'text';
     return `<div class="field"><label>${esc(f.label)}${opt}</label>
-      <input type="${t}" data-k="${f.key}" placeholder="${esc(f.placeholder||'')}">${help}</div>`;
+      <input type="${t}" data-k="${f.key}" autocomplete="${esc(f.autocomplete||'')}" placeholder="${esc(f.placeholder||'')}">${help}</div>`;
   }).join('');
 
   $('fields').innerHTML = html;
@@ -409,6 +407,15 @@ function finish(){
   const p = score(state.answers, state.intake);
   state.profile = p;
 
+  // Durable copy: the server recomputes and stores this independently of
+  // the local vault below, which is now just a same-session convenience
+  // cache, not the source of truth.
+  fetch('/api/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ intake: state.intake, answers: state.answers })
+  }).catch(() => { /* on-screen report still renders even if saving fails */ });
+
   const v = loadVault();
   v.push({
     id: Date.now().toString(36),
@@ -467,20 +474,50 @@ function renderReport(r){
     </div>`;
 }
 
-/* ---------- matchmaker vault ---------- */
-function renderVault(){
-  const v = loadVault();
-  const opts = v.map(p => `<option value="${p.id}">${esc(p.name)} &middot; ${new Date(p.at).toLocaleDateString()}</option>`).join('');
+/* ---------- matchmaker vault (server-backed, admin-token gated) ---------- */
+let adminToken = sessionStorage.getItem('revolution.admin.token') || '';
+
+async function adminFetch(url, opts = {}){
+  const doFetch = () => fetch(url, {
+    ...opts,
+    headers: { ...(opts.headers||{}), 'x-admin-token': adminToken }
+  });
+  let res = await doFetch();
+  if (res.status === 401){
+    adminToken = window.prompt('Matchmaker access token:') || '';
+    sessionStorage.setItem('revolution.admin.token', adminToken);
+    res = await doFetch();
+  }
+  return res;
+}
+
+async function renderVault(){
+  $('internal').innerHTML = `
+    <div class="wrap">
+      <div class="warn">Confidential &middot; Internal Use Only</div>
+      <h1 class="serif">The Matchmaker's File</h1>
+      <p style="margin-top:14px;color:#B9A894">Loading completed profiles&hellip;</p>
+    </div>`;
+
+  const res = await adminFetch('/api/admin/profiles');
+  if (!res.ok){
+    $('internal').querySelector('.wrap').innerHTML += `<p style="color:#C9736F">Could not load profiles (${res.status}).</p>
+      <div style="margin-top:60px"><button class="btn-text" id="leave">&larr; Return</button></div>`;
+    $('leave').onclick = () => show('cover');
+    return;
+  }
+  const { profiles: v } = await res.json();
+  const opts = v.map(p => `<option value="${p.id}">${esc(p.name)} &middot; ${new Date(p.created_at).toLocaleDateString()}</option>`).join('');
 
   $('internal').innerHTML = `
     <div class="wrap">
       <div class="warn">Confidential &middot; Internal Use Only</div>
       <h1 class="serif">The Matchmaker's File</h1>
-      <p style="margin-top:14px;color:#B9A894">Completed profiles are stored in this browser only. Nothing is transmitted.</p>
+      <p style="margin-top:14px;color:#B9A894">Completed profiles are saved server-side. Visible only with the matchmaker access token.</p>
 
       <h3>Completed Profiles &middot; ${v.length}</h3>
       ${v.length ? `<div class="vault">${v.map(p =>
-        `<button data-open="${p.id}">${esc(p.name)}<span class="meta">${new Date(p.at).toLocaleString()} &middot; open private report</span></button>`
+        `<button data-open="${p.id}">${esc(p.name)}<span class="meta">${new Date(p.created_at).toLocaleString()} &middot; open private report</span></button>`
       ).join('')}</div>` : `<p style="color:#9A8577">No profiles yet.</p>`}
 
       ${v.length >= 2 ? `
@@ -497,18 +534,25 @@ function renderVault(){
 
   $('leave').onclick = () => show('cover');
   $('internal').querySelectorAll('[data-open]').forEach(b => {
-    b.onclick = () => {
-      const rec = loadVault().find(x => x.id === b.dataset.open);
-      renderMatchmaker(matchmakerReport(score(rec.answers, rec.intake)));
+    b.onclick = async () => {
+      const res = await adminFetch(`/api/admin/profiles/${b.dataset.open}/matchmaker`);
+      if (!res.ok){ $('out').innerHTML = `<p style="color:#C9736F;margin-top:24px">Could not load report (${res.status}).</p>`; return; }
+      const { report } = await res.json();
+      renderMatchmaker(report);
     };
   });
   const cmp = $('doCompare');
-  if (cmp) cmp.onclick = () => {
-    const vv = loadVault();
-    const A = vv.find(x => x.id === $('selA').value);
-    const B = vv.find(x => x.id === $('selB').value);
-    if (!A || !B || A.id === B.id){ $('out').innerHTML = `<p style="color:#C9736F;margin-top:24px">Select two different clients.</p>`; return; }
-    renderMatch(matchKey(score(A.answers,A.intake), score(B.answers,B.intake), { aName:A.name, bName:B.name }));
+  if (cmp) cmp.onclick = async () => {
+    const profileIdA = $('selA').value, profileIdB = $('selB').value;
+    if (!profileIdA || !profileIdB || profileIdA === profileIdB){ $('out').innerHTML = `<p style="color:#C9736F;margin-top:24px">Select two different clients.</p>`; return; }
+    const res = await adminFetch('/api/admin/match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profileIdA, profileIdB })
+    });
+    if (!res.ok){ $('out').innerHTML = `<p style="color:#C9736F;margin-top:24px">Could not generate Match Key (${res.status}).</p>`; return; }
+    const { key } = await res.json();
+    renderMatch(key);
   };
 }
 

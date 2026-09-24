@@ -24,6 +24,14 @@ export const INTAKE_FIELDS = [
     help: 'What we will call you.'
   },
   {
+    key: 'email',
+    label: 'Email',
+    type: 'email',
+    required: true,
+    help: 'So your matchmaker can reach you. Never shown to other clients.',
+    autocomplete: 'email'
+  },
+  {
     key: 'dateOfBirth',
     label: 'Date of birth',
     type: 'date',
