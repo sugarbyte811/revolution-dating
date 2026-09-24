@@ -417,3 +417,327 @@ export function matchmakerReport(p) {
       'Confidential. Revolution Dating internal use only. This document contains inferences drawn from assessment responses. It is not a psychological evaluation and must not be characterised as one, to the client or to anyone else.'
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* MATCHMAKER PROFILE - the concise, actionable format                 */
+/* A matchmaker should be able to read this in 2-3 minutes. No scores, */
+/* no DISC terminology, no astrology degrees, no algorithm details -   */
+/* conclusions only.                                                   */
+/* ------------------------------------------------------------------ */
+
+const capFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+function calcAge(dateOfBirth) {
+  if (!dateOfBirth) return null;
+  const dob = new Date(dateOfBirth);
+  if (Number.isNaN(dob.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  return age;
+}
+
+function clientSnapshot(intake) {
+  return {
+    name: intake?.preferredName || 'Client',
+    age: calcAge(intake?.dateOfBirth),
+    location: intake?.location || 'Not provided',
+    gender: intake?.gender || 'Not provided',
+    interestedIn: (intake?.interestedIn || []).join(', ') || 'Not provided',
+    relationshipGoal: intake?.relationshipGoal || 'Not provided'
+  };
+}
+
+function whoShouldFind(p) {
+  const arc = ARCHETYPES[p.archetype.primary];
+  const hidden = ARCHETYPES[p.archetype.hidden];
+  const parts = [capFirst(`${arc.bestBrought}.`)];
+  parts.push(`Underneath the surface, they also need ${hidden.bestBrought} - a layer they are unlikely to ask for directly.`);
+  if (p.axes.pursuit > 30) parts.push('This person should be comfortable pursuing them clearly and visibly, especially early on.');
+  if (p.axes.closeness < -30) parts.push('They need a partner with a genuinely full, independent life rather than one who is highly available.');
+  if (p.axes.closeness > 30) parts.push('They need a partner who wants real shared daily life, not a parallel one.');
+  if (isPronounced(p, 'depth')) parts.push('Surface compatibility will not hold them; the partner needs to offer real psychological access.');
+  return parts.join(' ');
+}
+
+const TRAIT_WANT = [
+  (p) => (p.axes.reassurance > 30 ? 'Naturally expressive with reassurance, without needing to be asked' : null),
+  (p) =>
+    p.axes.conflictEngage > 30
+      ? 'Willing to stay in the room during disagreement rather than withdraw'
+      : p.axes.conflictEngage < -30
+        ? 'Comfortable giving space during conflict rather than pressing for resolution'
+        : null,
+  (p) =>
+    p.axes.directness > 25
+      ? 'Plain and direct in communication'
+      : p.axes.directness < -25
+        ? 'Emotionally attuned enough to read what is not said'
+        : null,
+  (p) =>
+    p.axes.novelty > 30
+      ? 'Still growing and developing as a person'
+      : p.axes.novelty < -30
+        ? 'Comfortable with deep familiarity rather than needing constant novelty'
+        : null,
+  (p) => (p.axes.security > 35 ? 'Consistent and reliable in effort, week to week' : null),
+  (p) => (isPronounced(p, 'admiration') ? 'Able to hold their own ground and earn genuine respect' : null),
+  (p) => (p.axes.family > 35 ? 'Family-oriented, or at least genuinely comfortable with family being central' : null),
+  (p) => (p.axes.status > 35 ? 'Demonstrated ambition and forward motion in their own life' : null),
+  (p) =>
+    p.axes.pace < -30
+      ? 'Unhurried - comfortable moving toward commitment deliberately'
+      : p.axes.pace > 30
+        ? 'Ready to move toward commitment without dragging it out'
+        : null,
+  (p) => (p.axes.physical > 35 ? 'Brings strong, mutual physical chemistry from the start' : null)
+];
+
+function topMatchTraits(p) {
+  const arc = ARCHETYPES[p.archetype.primary];
+  const hidden = ARCHETYPES[p.archetype.hidden];
+  const out = [capFirst(`${arc.bestBrought}.`), capFirst(`${hidden.bestBrought}.`)];
+  for (const fn of TRAIT_WANT) {
+    if (out.length >= 8) break;
+    const t = fn(p);
+    if (t) out.push(t + '.');
+  }
+  if (out.length < 5) out.push('Emotionally stable and consistent - no further contraindicating signal flagged beyond the traits above.');
+  return out.slice(0, 8);
+}
+
+const TRAIT_AVOID = [
+  (p) => (p.axes.pursuit > 35 ? 'Passive partners who do not pursue early - will read as disinterest and cost them their chance' : null),
+  (p) =>
+    p.axes.novelty < -35
+      ? 'High-novelty, unpredictable partners - will read as unstable rather than exciting'
+      : p.axes.novelty > 35
+        ? 'Very steady, low-novelty partners, at least as a first introduction - will read as flat'
+        : null,
+  (p) => (p.axes.physical > 45 ? 'Anyone where physical chemistry is uncertain, regardless of how well everything else reads on paper' : null),
+  (p) => (p.axes.reassurance > 35 ? 'Partners who go quiet under pressure instead of communicating - silence gets filled in with worse assumptions' : null),
+  (p) =>
+    p.axes.closeness < -35
+      ? 'Partners who need constant togetherness - will feel like pressure within months'
+      : p.axes.closeness > 35
+        ? 'Emotionally distant or highly independent partners - will read as uninterested'
+        : null,
+  (p) =>
+    p.axes.directness > 25
+      ? 'Indirect or cagey communicators - subtlety will be missed or resented'
+      : p.axes.directness < -25
+        ? 'Blunt partners with no subtlety - will come across as harsh'
+        : null,
+  (p) => (p.axes.security > 35 ? 'Inconsistent partners - uneven effort costs them more than conflict does' : null),
+  (p) => (p.axes.admiration > 35 ? 'Partners who do not show respect openly - loss of respect is effectively terminal here' : null)
+];
+
+const SHADOW_AVOID = {
+  veil: 'Partners who are emotionally unreadable - this client will build an interpretation and act on it without checking.',
+  fortress: 'Partners who need a lot of visible reassurance early - this client withdraws access under pressure rather than explaining.',
+  ledger: 'Partners who take generosity at face value - the account runs silently and is presented all at once.',
+  horizon: 'Partners who move fast toward containment - this client keeps an exit warm when they feel confined.'
+};
+
+function avoidMatchingWith(p) {
+  const out = [];
+  if (SHADOW_AVOID[p.shadow.key]) out.push(SHADOW_AVOID[p.shadow.key]);
+  for (const fn of TRAIT_AVOID) {
+    if (out.length >= 8) break;
+    const t = fn(p);
+    if (t) out.push(t + '.');
+  }
+  if (!out.length) out.push('No significant contraindications flagged by the assessment. Standard filtering applies.');
+  return out.slice(0, 8);
+}
+
+function relationshipNeeds(p) {
+  const parts = [];
+  parts.push(
+    isPronounced(p, 'reassurance')
+      ? 'They need consistent, low-effort reassurance rather than having to ask for it - a partner who offers it unprompted will read as safe.'
+      : 'They do not require frequent reassurance and can tolerate a partner who is undemonstrative day-to-day.'
+  );
+  if (isPronounced(p, 'admiration')) parts.push('Feeling respected by someone they also respect is close to non-negotiable for their sense of security.');
+  if (isPronounced(p, 'depth')) parts.push('Emotional fulfillment for them requires real psychological access, not just pleasant company.');
+  if (isPronounced(p, 'beingSeen')) parts.push('Being accurately understood matters more to them than being agreed with.');
+  if (p.axes.security > 35) parts.push('Predictable, consistent effort week over week is what makes them feel secure - inconsistency erodes trust faster than conflict does.');
+  if (p.axes.physical > 35) parts.push('Physical attraction is structural to their sense of being desired, not incidental.');
+  return parts.join(' ');
+}
+
+function communicationStyle(p) {
+  const parts = [];
+  parts.push(
+    p.axes.directness > 25
+      ? 'They communicate plainly and expect the same in return. Hinting and subtlety will be missed or read as evasiveness.'
+      : p.axes.directness < -25
+        ? 'They communicate indirectly and read between the lines themselves. A partner who is only ever blunt will feel abrasive to them.'
+        : 'Their communication style is balanced - neither highly blunt nor highly indirect.'
+  );
+  parts.push(
+    p.axes.reassurance > 35
+      ? 'Regular, unprompted check-ins work best. Going quiet for stretches will be read as a problem even when there is none.'
+      : 'They do not need frequent check-ins and are comfortable with natural gaps in contact.'
+  );
+  const style = p.summary.conflictTop[0];
+  if (style) parts.push(`Under pressure this shifts: ${CONFLICT_STYLE_META[style.key].short}.`);
+  parts.push(
+    p.axes.conflictEngage > 30
+      ? 'They shut down when a conversation is deferred or brushed off - they need it addressed in the moment.'
+      : p.axes.conflictEngage < -30
+        ? 'They shut down and disengage if pushed to resolve something before they have had space to think.'
+        : 'They can engage on a reasonable timeline without needing either immediate resolution or a long cooling-off period.'
+  );
+  return parts.join(' ');
+}
+
+function conflictStyleSection(p) {
+  const fr = fightAndRepair(p);
+  const balance =
+    p.axes.conflictEngage > 30
+      ? 'Best matched with a partner who can stay in the room and not withdraw - pursuit-avoidance dynamics escalate rather than resolve things for them.'
+      : p.axes.conflictEngage < -30
+        ? 'Best matched with a partner who can give them space without treating that space as rejection - chasing them during a cooldown backfires.'
+        : 'Comparatively easy to fight with, and adapts to most partner conflict styles.';
+  return [...fr.fights, ...fr.repairs, balance].join(' ');
+}
+
+function affectionRomance(p) {
+  const chem = chemistryNotes(p);
+  const pd = pursuitAndDistance(p);
+  const parts = [...chem.creates, ...chem.sustains];
+  if (pd.pursuit[0]) parts.push(pd.pursuit[0]);
+  parts.push(
+    p.axes.closeness > 35
+      ? 'They want a high degree of shared daily life and closeness rather than a lot of separate independence.'
+      : p.axes.closeness < -35
+        ? 'They need real independence inside the relationship and will feel crowded by a partner who wants constant togetherness.'
+        : 'They want a reasonable balance of closeness and independence.'
+  );
+  return parts.join(' ');
+}
+
+function lifestyleCompatibility(p, intake) {
+  const out = [];
+  out.push(
+    `Social level: ${p.axes.social > 25 ? 'High - wants an active social life around the relationship.' : p.axes.social < -25 ? 'Low - prefers a quieter, more private life together.' : 'Moderate - comfortable with a mix of social time and quiet time.'}`
+  );
+  out.push(
+    `Routine vs. spontaneity: ${p.axes.novelty > 25 ? 'Leans toward novelty and spontaneity; routine reads as stagnation.' : p.axes.novelty < -25 ? 'Leans toward routine and familiarity; too much spontaneity reads as unstable.' : 'Comfortable with either, no strong pull.'}`
+  );
+  out.push(
+    `Ambition / career orientation: ${p.axes.status > 25 ? 'Ambition and demonstrated forward motion matter to them, in themselves and in a partner.' : 'Career ambition is not a major factor either way.'}`
+  );
+  out.push(
+    `Spending / lifestyle expectations: ${p.axes.provider > 25 ? 'Expects a traditional, clearly-defined provider dynamic.' : p.axes.provider < -25 ? 'Expects an egalitarian, shared financial dynamic.' : 'Flexible on the financial dynamic.'}${p.axes.generosity > 30 ? ' Generosity matters to them and reads as a sign of care.' : ''}`
+  );
+  const kids = [];
+  if (intake?.hasChildren) kids.push(`current status: ${intake.hasChildren}`);
+  if (intake?.wantsChildren) kids.push(`on children: ${intake.wantsChildren}`);
+  out.push(
+    `Family orientation: ${p.axes.family > 35 ? 'Family is central to their life and needs to be central to a partner’s life too.' : 'Family is present but not the organizing center of their life.'}${kids.length ? ` (${kids.join('; ')})` : ''}`
+  );
+  out.push(
+    `Travel / adventure: ${p.axes.novelty > 30 ? 'Drawn to new experiences and travel; a stagnant routine will wear on them.' : 'No strong pull toward novelty or adventure for its own sake.'}`
+  );
+  out.push(
+    `Homebody vs. social: ${p.axes.social < -25 ? 'A homebody by inclination.' : p.axes.social > 25 ? 'Energized by being out and social.' : 'Comfortable in either mode.'}`
+  );
+  return out;
+}
+
+function nonNegotiables(p, intake) {
+  const comp = compromiseNotes(p);
+  const out = comp.wont.filter((w) => !w.startsWith('No single axis'));
+  if (intake?.wantsChildren === 'Yes, definitely') out.push('Wants children - this is settled and non-negotiable.');
+  if (intake?.wantsChildren === 'No, and this is settled') out.push('Does not want (more) children - this is settled and non-negotiable.');
+  if (!out.length) out.push('No hard structural dealbreakers flagged by the assessment beyond the stated intake filters (children, gender preference).');
+  return out;
+}
+
+function flexiblePreferences(p, intake) {
+  const comp = compromiseNotes(p);
+  const out = comp.flexible.filter((f) => f !== 'No clear flexibility signal. Treat stated dealbreakers as real until tested.');
+  if (intake?.wantsChildren === 'Open to it with the right person') out.push('Open on children - do not over-filter on this.');
+  if (intake?.wantsChildren === 'Undecided') out.push('Undecided on children - do not over-filter on this yet.');
+  if (!out.length) out.push('Treat the stated preferences above as genuine unless the client indicates otherwise in conversation.');
+  return out;
+}
+
+function matchmakerNotes(p) {
+  const arc = ARCHETYPES[p.archetype.primary];
+  const shadow = SHADOWS[p.shadow.key];
+  const sentences = [];
+  sentences.push(`The single most important thing to filter on for this client is finding ${arc.bestBrought}.`);
+  if (p.stated.divergent) {
+    sentences.push('What they will tell you they want in person and what actually works for them diverge; weight the demonstrated pattern over the stated brief.');
+  }
+  sentences.push(`Under strain they move toward ${shadow.name}. ${shadow.tell}`);
+  if (p.axes.rigidity < -30) {
+    sentences.push('Their stated requirements are more flexible in practice than they will admit - do not over-filter on stated dealbreakers alone.');
+  } else if (p.axes.rigidity > 40) {
+    sentences.push('They hold their stated requirements firmly and genuinely - treat them as real filters, not just preferences.');
+  }
+  sentences.push('Read the full profile before selecting introductions; these traits interact, and no single one should be filtered on in isolation.');
+  return sentences.join(' ');
+}
+
+function firstDateFit(p) {
+  const parts = [];
+  parts.push(
+    p.axes.social > 25
+      ? 'They show up best in a lively, social setting with some energy in the room - a quiet one-on-one can feel flat to them this early.'
+      : p.axes.social < -25
+        ? 'They show up best in a quieter, low-stimulation setting where real conversation is possible - a loud or crowded venue works against them.'
+        : 'They are adaptable to most first-date settings.'
+  );
+  parts.push(
+    p.axes.pace < -30
+      ? 'Do not rush the date or push for a fast verdict - they need room to arrive at their own read of the person.'
+      : p.axes.pace > 30
+        ? 'A date with clear structure and forward momentum will suit them better than an open-ended, drifting one.'
+        : 'A standard-length, unhurried first date works fine.'
+  );
+  if (isPronounced(p, 'depth')) parts.push('A setting that allows for actual conversation, not just an activity, will let them show up as themselves.');
+  if (p.axes.pursuit > 30) parts.push('Being asked out clearly and directly, without ambiguity about intent, puts them at ease before the date even starts.');
+  return parts.join(' ');
+}
+
+function matchingSummary(p) {
+  const arc = ARCHETYPES[p.archetype.primary];
+  const hidden = ARCHETYPES[p.archetype.hidden];
+  let s = `Prioritize ${arc.bestBrought}, and just as importantly, ${hidden.bestBrought}`;
+  if (p.axes.pursuit > 30) s += ', someone willing to pursue this client clearly and visibly early on';
+  if (isPronounced(p, 'reassurance')) s += ', who offers reassurance without needing to be asked';
+  s += '.';
+  return s;
+}
+
+/**
+ * The Matchmaker Profile: the concise, actionable internal report.
+ * Conclusions only - no raw scores, DISC terminology, astrology degrees,
+ * numerology calculations, question numbers, or algorithm details.
+ */
+export function matchmakerProfile(p, intake = {}) {
+  return {
+    confidential: true,
+    completeness: p.complete ? 'Complete' : `Incomplete - missing ${p.unanswered.length} of 20 responses (${p.unanswered.join(', ')}). Read with caution.`,
+    snapshot: clientSnapshot(intake),
+    whoWeShouldFind: whoShouldFind(p),
+    topMatchTraits: topMatchTraits(p),
+    avoidMatchingWith: avoidMatchingWith(p),
+    relationshipNeeds: relationshipNeeds(p),
+    communicationStyle: communicationStyle(p),
+    conflictStyle: conflictStyleSection(p),
+    affectionRomance: affectionRomance(p),
+    lifestyleCompatibility: lifestyleCompatibility(p, intake),
+    nonNegotiables: nonNegotiables(p, intake),
+    flexiblePreferences: flexiblePreferences(p, intake),
+    matchmakerNotes: matchmakerNotes(p),
+    firstDateFit: firstDateFit(p),
+    matchingSummary: matchingSummary(p),
+    footer: 'Confidential. Revolution Dating internal use only. Conclusions only - not a psychological evaluation.'
+  };
+}

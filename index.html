@@ -474,24 +474,64 @@ function renderReport(r){
     </div>`;
 }
 
-/* ---------- matchmaker vault (server-backed, admin-token gated) ---------- */
+/* ---------- matchmaker dashboard (server-backed, admin-token gated) ---------- */
 let adminToken = sessionStorage.getItem('revolution.admin.token') || '';
+let currentProfiles = [];
 
 async function adminFetch(url, opts = {}){
-  const doFetch = () => fetch(url, {
+  const res = await fetch(url, {
     ...opts,
     headers: { ...(opts.headers||{}), 'x-admin-token': adminToken }
   });
-  let res = await doFetch();
   if (res.status === 401){
-    adminToken = window.prompt('Matchmaker access token:') || '';
-    sessionStorage.setItem('revolution.admin.token', adminToken);
-    res = await doFetch();
+    adminToken = '';
+    sessionStorage.removeItem('revolution.admin.token');
+    renderLogin('Session expired. Please sign in again.');
+    return null;
   }
   return res;
 }
 
+function renderLogin(err){
+  $('internal').innerHTML = `
+    <div class="wrap">
+      <div class="warn">Confidential &middot; Internal Use Only</div>
+      <h1 class="serif">Matchmaker Sign In</h1>
+      <p style="margin-top:14px;color:#B9A894">Enter the matchmaker access password to continue.</p>
+      <div class="field" style="margin-top:24px"><label>Password</label>
+        <input type="password" id="loginPass" autocomplete="current-password"></div>
+      ${err ? `<p style="color:#C9736F">${esc(err)}</p>` : ''}
+      <div style="margin-top:24px"><button class="btn" id="doLogin">Sign In</button></div>
+      <div style="margin-top:60px"><button class="btn-text" id="leave">&larr; Return</button></div>
+    </div>`;
+  $('leave').onclick = () => show('cover');
+  const submit = async () => {
+    const pass = $('loginPass').value;
+    const res = await fetch('/api/admin/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: pass })
+    });
+    if (!res.ok){ renderLogin('Incorrect password.'); return; }
+    adminToken = pass;
+    sessionStorage.setItem('revolution.admin.token', adminToken);
+    renderVault();
+  };
+  $('doLogin').onclick = submit;
+  $('loginPass').onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+  $('loginPass').focus();
+}
+
+async function loadProfiles(q = ''){
+  const params = new URLSearchParams({ includeInactive: '1' });
+  if (q) params.set('q', q);
+  const res = await adminFetch(`/api/admin/profiles?${params}`);
+  if (!res) return null;
+  if (!res.ok) return null;
+  const { profiles } = await res.json();
+  return profiles;
+}
+
 async function renderVault(){
+  if (!adminToken){ renderLogin(); return; }
   $('internal').innerHTML = `
     <div class="wrap">
       <div class="warn">Confidential &middot; Internal Use Only</div>
@@ -499,48 +539,71 @@ async function renderVault(){
       <p style="margin-top:14px;color:#B9A894">Loading completed profiles&hellip;</p>
     </div>`;
 
-  const res = await adminFetch('/api/admin/profiles');
-  if (!res.ok){
-    $('internal').querySelector('.wrap').innerHTML += `<p style="color:#C9736F">Could not load profiles (${res.status}).</p>
-      <div style="margin-top:60px"><button class="btn-text" id="leave">&larr; Return</button></div>`;
-    $('leave').onclick = () => show('cover');
+  const profiles = await loadProfiles();
+  if (profiles === null){
+    if ($('internal').innerHTML.includes('Loading completed')){
+      $('internal').querySelector('.wrap').innerHTML += `<p style="color:#C9736F">Could not load profiles.</p>
+        <div style="margin-top:60px"><button class="btn-text" id="leave">&larr; Return</button></div>`;
+      const leave = $('leave'); if (leave) leave.onclick = () => show('cover');
+    }
     return;
   }
-  const { profiles: v } = await res.json();
-  const opts = v.map(p => `<option value="${p.id}">${esc(p.name)} &middot; ${new Date(p.created_at).toLocaleDateString()}</option>`).join('');
+  currentProfiles = profiles;
+  renderVaultList();
+}
+
+function renderVaultList(){
+  const v = currentProfiles;
+  const active = v.filter(p => p.active);
+  const opts = active.map(p => `<option value="${p.id}">${esc(p.name)} &middot; ${new Date(p.created_at).toLocaleDateString()}</option>`).join('');
 
   $('internal').innerHTML = `
     <div class="wrap">
       <div class="warn">Confidential &middot; Internal Use Only</div>
       <h1 class="serif">The Matchmaker's File</h1>
-      <p style="margin-top:14px;color:#B9A894">Completed profiles are saved server-side. Visible only with the matchmaker access token.</p>
+      <p style="margin-top:14px;color:#B9A894">Completed profiles are saved server-side. Visible only after matchmaker sign-in.</p>
+
+      <div class="field" style="margin-top:20px"><label>Search clients</label>
+        <input type="text" id="search" placeholder="Search by name or email"></div>
 
       <h3>Completed Profiles &middot; ${v.length}</h3>
       ${v.length ? `<div class="vault">${v.map(p =>
-        `<button data-open="${p.id}">${esc(p.name)}<span class="meta">${new Date(p.created_at).toLocaleString()} &middot; open private report</span></button>`
-      ).join('')}</div>` : `<p style="color:#9A8577">No profiles yet.</p>`}
+        `<button data-open="${p.id}">${esc(p.name)}${p.active ? '' : ' <span style="color:#C9736F">(inactive)</span>'}<span class="meta">${new Date(p.created_at).toLocaleString()} &middot; ${esc(p.email)}</span></button>`
+      ).join('')}</div>` : `<p style="color:#9A8577">No matching profiles.</p>`}
 
-      ${v.length >= 2 ? `
-      <h3>Compare Two Clients &middot; The Match Key</h3>
+      ${active.length >= 2 ? `
+      <h3>Compare For Match</h3>
       <div class="pair">
         <select id="selA">${opts}</select>
         <select id="selB">${opts}</select>
       </div>
-      <div style="margin-top:28px"><button class="btn" id="doCompare">Generate Match Key</button></div>` : ''}
+      <div style="margin-top:28px"><button class="btn" id="doCompare">Compare For Match</button></div>` : ''}
 
       <div id="out"></div>
-      <div style="margin-top:60px"><button class="btn-text" id="leave">&larr; Return</button></div>
+      <div style="margin-top:60px"><button class="btn-text" id="signOut">Sign out</button> &middot; <button class="btn-text" id="leave">&larr; Return</button></div>
     </div>`;
 
   $('leave').onclick = () => show('cover');
+  $('signOut').onclick = () => { adminToken = ''; sessionStorage.removeItem('revolution.admin.token'); renderLogin(); };
+
+  let searchTimer;
+  $('search').oninput = (e) => {
+    clearTimeout(searchTimer);
+    const q = e.target.value;
+    searchTimer = setTimeout(async () => {
+      const profiles = await loadProfiles(q.trim());
+      if (profiles === null) return;
+      currentProfiles = profiles;
+      renderVaultList();
+      $('search').value = q;
+      $('search').focus();
+    }, 250);
+  };
+
   $('internal').querySelectorAll('[data-open]').forEach(b => {
-    b.onclick = async () => {
-      const res = await adminFetch(`/api/admin/profiles/${b.dataset.open}/matchmaker`);
-      if (!res.ok){ $('out').innerHTML = `<p style="color:#C9736F;margin-top:24px">Could not load report (${res.status}).</p>`; return; }
-      const { report } = await res.json();
-      renderMatchmaker(report);
-    };
+    b.onclick = () => openProfile(b.dataset.open);
   });
+
   const cmp = $('doCompare');
   if (cmp) cmp.onclick = async () => {
     const profileIdA = $('selA').value, profileIdB = $('selB').value;
@@ -550,67 +613,99 @@ async function renderVault(){
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ profileIdA, profileIdB })
     });
-    if (!res.ok){ $('out').innerHTML = `<p style="color:#C9736F;margin-top:24px">Could not generate Match Key (${res.status}).</p>`; return; }
-    const { key } = await res.json();
-    renderMatch(key);
+    if (!res) return;
+    if (!res.ok){ $('out').innerHTML = `<p style="color:#C9736F;margin-top:24px">Could not compare these clients (${res.status}).</p>`; return; }
+    const { summary } = await res.json();
+    renderMatch(summary);
   };
 }
 
-const ul = (arr) => `<ul>${(arr||[]).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+async function openProfile(id){
+  const res = await adminFetch(`/api/admin/profiles/${id}`);
+  if (!res) return;
+  if (!res.ok){ $('out').innerHTML = `<p style="color:#C9736F;margin-top:24px">Could not load client (${res.status}).</p>`; return; }
+  const rec = await res.json();
 
-function renderMatchmaker(m){
   $('out').innerHTML = `
-    <h3>${esc(m.name)} &middot; ${esc(m.completeness)}</h3>
-    <div class="typegrid">
-      ${['stated','attraction','relationship','growth'].map(k => `
-        <div><div class="t">${k} type</div>
-        <div class="n serif">${esc(m.types[k].label)}</div>
-        <p>${esc(m.types[k].body)}</p></div>`).join('')}
+    <div class="keycard" style="margin-top:24px">
+      <div class="kn serif">${esc(rec.name)}</div>
+      <div class="ks">${esc(rec.email)}</div>
     </div>
-    ${m.archetype.note ? `<p style="color:#C9736F;margin-top:20px">${esc(m.archetype.note)}</p>` : ''}
-    <h3>What They Aren't Saying</h3>${ul(m.whatTheyArentSaying)}
-    <h3>Stated vs. Demonstrated</h3>${ul(m.statedVsDemonstrated)}
-    <h3>What Creates Chemistry</h3>${ul(m.createsChemistry)}
-    <h3>What Sustains It</h3>${ul(m.sustainsChemistry)}
-    <h3>What Will Kill Attraction</h3>${ul(m.killsAttraction)}
-    <h3>How They Need To Be Pursued</h3>${ul(m.howToPursue)}
-    <h3>How They Respond To Distance</h3>${ul(m.responseToDistance)}
-    <h3>How They Fight</h3>${ul(m.howTheyFight)}
-    <h3>How They Repair</h3>${ul(m.howTheyRepair)}
-    <h3>Unlikely To Compromise On</h3>${ul(m.wontCompromise)}
-    <h3>Where Stated Dealbreakers Appear Flexible</h3>${ul(m.flexibleDealbreakers)}
-    <h3>Consider Introducing</h3>${ul(m.consider)}
-    <h3>Approach Carefully</h3>${ul(m.approachCarefully)}
-    <h3>Questions To Ask In Person</h3>${ul(m.questionsToAsk)}
-    <p class="tiny">${esc(m.footer)}</p>`;
-  window.scrollTo({ top: 400, behavior:'smooth' });
+    <label class="checkline" style="margin-top:16px"><input type="checkbox" id="activeToggle" ${rec.active ? 'checked' : ''}><span>Active client</span></label>
+    <div class="field" style="margin-top:16px"><label>Private notes</label>
+      <textarea id="notesBox" rows="4" style="width:100%">${esc(rec.notes || '')}</textarea></div>
+    <div style="margin-top:12px"><button class="btn" id="saveNotes">Save</button> <span id="saveMsg" class="tiny"></span></div>
+    <div style="margin-top:28px"><button class="btn" id="viewReport">View Matchmaker Profile</button></div>
+    <div id="reportOut"></div>`;
+
+  $('saveNotes').onclick = async () => {
+    const res2 = await adminFetch(`/api/admin/profiles/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: $('notesBox').value, active: $('activeToggle').checked })
+    });
+    if (!res2) return;
+    $('saveMsg').textContent = res2.ok ? 'Saved.' : 'Could not save.';
+    if (res2.ok){
+      const idx = currentProfiles.findIndex(p => p.id === id);
+      if (idx >= 0) currentProfiles[idx].active = $('activeToggle').checked;
+    }
+  };
+  $('viewReport').onclick = async () => {
+    const res3 = await adminFetch(`/api/admin/profiles/${id}/matchmaker`);
+    if (!res3) return;
+    if (!res3.ok){ $('reportOut').innerHTML = `<p style="color:#C9736F;margin-top:24px">Could not load report (${res3.status}).</p>`; return; }
+    const { report } = await res3.json();
+    renderMatchmaker(report, 'reportOut');
+  };
+  window.scrollTo({ top: 400, behavior: 'smooth' });
 }
 
-function renderMatch(k){
-  const f = k.fit;
-  $('out').innerHTML = `
+const ul = (arr) => `<ul>${(arr || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+
+function renderMatchmaker(m, targetId = 'out'){
+  const s = m.snapshot;
+  $(targetId).innerHTML = `
+    <h3>Client Snapshot</h3>
+    <p><strong>${esc(s.name)}</strong> &middot; ${s.age ?? 'age unknown'} &middot; ${esc(s.location)} &middot; ${esc(s.gender)} &middot; interested in ${esc(s.interestedIn)} &middot; ${esc(s.relationshipGoal)}</p>
+    ${m.completeness !== 'Complete' ? `<p style="color:#C9736F">${esc(m.completeness)}</p>` : ''}
+
+    <h3>Who We Should Find For Them</h3><p>${esc(m.whoWeShouldFind)}</p>
+    <h3>Top Match Traits</h3>${ul(m.topMatchTraits)}
+    <h3>Avoid Matching With</h3>${ul(m.avoidMatchingWith)}
+    <h3>Relationship Needs</h3><p>${esc(m.relationshipNeeds)}</p>
+    <h3>Communication Style</h3><p>${esc(m.communicationStyle)}</p>
+    <h3>Conflict Style</h3><p>${esc(m.conflictStyle)}</p>
+    <h3>Affection + Romance</h3><p>${esc(m.affectionRomance)}</p>
+    <h3>Lifestyle Compatibility</h3>${ul(m.lifestyleCompatibility)}
+    <h3>Non-Negotiables</h3>${ul(m.nonNegotiables)}
+    <h3>Flexible Preferences</h3>${ul(m.flexiblePreferences)}
+    <h3>Matchmaker Notes</h3><p>${esc(m.matchmakerNotes)}</p>
+    <h3>First-Date Fit</h3><p>${esc(m.firstDateFit)}</p>
+    <h3>Matching Summary</h3><p><em>${esc(m.matchingSummary)}</em></p>
+    <p class="tiny">${esc(m.footer)}</p>`;
+  window.scrollTo({ top: 400, behavior: 'smooth' });
+}
+
+function renderMatch(k, targetId = 'out'){
+  const f = k.relationshipDynamic;
+  $(targetId).innerHTML = `
     <div class="keycard">
       <div class="kn serif">${esc(f.name)}</div>
       <div class="ks">${esc(f.subtitle)}</div>
       <div class="kb">${esc(f.body)}</div>
     </div>
-    <h3>Why This Could Work</h3>${ul(k.whyWork)}
-    <h3>Assessment Reasoning</h3>${ul(f.reasons)}
-    <h3>Where They Naturally Understand Each Other</h3>${ul(k.natural)}
-    <h3>Where They May Misread Each Other</h3>${ul(k.misread)}
-    <h3>Love-Language Translation</h3>${ul(k.loveTranslation.map(t => t.note))}
-    <h3>Conflict Translation</h3>
-    ${ul([k.conflictTranslation.note, ...k.conflictTranslation.repairRows.map(r => r.note)])}
-    <h3>Attraction Dynamic</h3>${ul([k.attraction.note])}
-    <h3>Lifestyle Alignment</h3>${ul([k.lifestyle.note])}
-    <h3>Long-Term Alignment</h3>${ul([k.longTerm.note, k.longTerm.kidsNote].filter(Boolean))}
-    <h3>What ${esc(k.aName)} Needs To Understand About ${esc(k.bName)}</h3>${ul(k.aShouldUnderstand)}
-    <h3>What ${esc(k.bName)} Needs To Understand About ${esc(k.aName)}</h3>${ul(k.bShouldUnderstand)}
-    <h3>What The Matchmaker Should Watch</h3>${ul(k.watch)}
-    <h3>How To Introduce ${esc(k.bName)} To ${esc(k.aName)}</h3>${ul(k.intro.toA)}
-    <h3>How To Introduce ${esc(k.aName)} To ${esc(k.bName)}</h3>${ul(k.intro.toB)}
-    <p class="tiny">Confidential. Revolution Dating internal use only.</p>`;
-  window.scrollTo({ top: 400, behavior:'smooth' });
+    <h3>Strong Alignment</h3>${ul(k.strongAlignment)}
+    <h3>Potential Friction</h3>${ul(k.potentialFriction)}
+    <h3>Relationship Dynamic - Reasoning</h3>${ul(f.reasons)}
+    <h3>Communication Fit</h3>${ul([...k.communicationFit.loveLanguage, ...k.communicationFit.conflict])}
+    <h3>Lifestyle Fit</h3>${ul(k.lifestyleFit)}
+    <h3>Attraction &amp; Affection Fit</h3>${ul(k.attractionAffectionFit)}
+    <h3>Dealbreaker Conflicts</h3>${ul(k.dealbreakerConflicts)}
+    <h3>Questions To Explore Before Introduction</h3>${ul(k.questionsToExplore)}
+    <h3>How To Introduce ${esc(k.bName)} To ${esc(k.aName)}</h3>${ul(k.introductionGuidance.toA)}
+    <h3>How To Introduce ${esc(k.aName)} To ${esc(k.bName)}</h3>${ul(k.introductionGuidance.toB)}
+    <p class="tiny">Confidential. Revolution Dating internal use only. No single compatibility score is generated by design - use this analysis to make the call.</p>`;
+  window.scrollTo({ top: 400, behavior: 'smooth' });
 }
 
 /* ---------- wiring ---------- */

@@ -14,8 +14,8 @@ import { randomUUID } from 'node:crypto';
 
 import { score } from './src/scoring.js';
 import { clientReport } from './src/report-client.js';
-import { matchmakerReport } from './src/report-matchmaker.js';
-import { matchKey } from './src/compatibility.js';
+import { matchmakerProfile } from './src/report-matchmaker.js';
+import { compareSummary } from './src/compatibility.js';
 import { validateIntake } from './src/intake.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -37,11 +37,20 @@ async function ensureSchema() {
       email TEXT NOT NULL,
       intake JSONB NOT NULL,
       answers JSONB NOT NULL,
+      notes TEXT NOT NULL DEFAULT '',
+      active BOOLEAN NOT NULL DEFAULT true,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `);
+  await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notes TEXT NOT NULL DEFAULT '';`);
+  await pool.query(`ALTER TABLE profiles ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;`);
 }
 
+// Admin auth is a single shared secret (one matchmaker desk, no per-user
+// accounts). The browser exchanges it for the same token via /api/admin/login
+// so the UI can show a real login screen instead of a native prompt() -
+// there is no server-side session, the token itself is still what gates
+// every subsequent admin request.
 function requireAdmin(req, res, next) {
   const token = req.headers['x-admin-token'];
   if (!process.env.ADMIN_TOKEN) {
@@ -52,6 +61,17 @@ function requireAdmin(req, res, next) {
   }
   next();
 }
+
+app.post('/api/admin/login', (req, res) => {
+  const { token } = req.body || {};
+  if (!process.env.ADMIN_TOKEN) {
+    return res.status(500).json({ error: 'Server missing ADMIN_TOKEN configuration.' });
+  }
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    return res.status(401).json({ error: 'Incorrect password.' });
+  }
+  res.json({ ok: true });
+});
 
 async function getProfile(id) {
   const { rows } = await pool.query('SELECT * FROM profiles WHERE id = $1', [id]);
@@ -94,25 +114,58 @@ app.post('/api/submit', async (req, res) => {
   res.json({ profileId: id, name: profile.name });
 });
 
-// ─── Admin: list all profiles ──────────────────────────────────────────
+// ─── Admin: list/search profiles ────────────────────────────────────────
 app.get('/api/admin/profiles', requireAdmin, async (req, res) => {
   if (!pool) return res.status(500).json({ error: 'DATABASE_URL not configured.' });
+  const q = (req.query.q || '').trim();
+  const showInactive = req.query.includeInactive === '1';
+  const clauses = [];
+  const params = [];
+  if (!showInactive) clauses.push('active = true');
+  if (q) {
+    params.push(`%${q}%`);
+    clauses.push(`(name ILIKE $${params.length} OR email ILIKE $${params.length})`);
+  }
+  const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
   const { rows } = await pool.query(
-    'SELECT id, name, email, created_at FROM profiles ORDER BY created_at DESC'
+    `SELECT id, name, email, active, created_at FROM profiles ${where} ORDER BY created_at DESC`,
+    params
   );
   res.json({ profiles: rows });
 });
 
-// ─── Admin: private matchmaker report for one profile ──────────────────
+// ─── Admin: one profile's full record (intake, notes, active) ──────────
+app.get('/api/admin/profiles/:id', requireAdmin, async (req, res) => {
+  if (!pool) return res.status(500).json({ error: 'DATABASE_URL not configured.' });
+  const row = await getProfile(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Profile not found.' });
+  res.json({
+    id: row.id, name: row.name, email: row.email, intake: row.intake,
+    answers: row.answers, notes: row.notes, active: row.active, createdAt: row.created_at,
+  });
+});
+
+// ─── Admin: update notes / active status ────────────────────────────────
+app.patch('/api/admin/profiles/:id', requireAdmin, async (req, res) => {
+  if (!pool) return res.status(500).json({ error: 'DATABASE_URL not configured.' });
+  const row = await getProfile(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Profile not found.' });
+  const notes = typeof req.body?.notes === 'string' ? req.body.notes : row.notes;
+  const active = typeof req.body?.active === 'boolean' ? req.body.active : row.active;
+  await pool.query('UPDATE profiles SET notes = $1, active = $2 WHERE id = $3', [notes, active, row.id]);
+  res.json({ ok: true, notes, active });
+});
+
+// ─── Admin: private Matchmaker Profile for one client ───────────────────
 app.get('/api/admin/profiles/:id/matchmaker', requireAdmin, async (req, res) => {
   if (!pool) return res.status(500).json({ error: 'DATABASE_URL not configured.' });
   const row = await getProfile(req.params.id);
   if (!row) return res.status(404).json({ error: 'Profile not found.' });
   const p = score(row.answers, row.intake);
-  res.json({ name: row.name, report: matchmakerReport(p) });
+  res.json({ name: row.name, report: matchmakerProfile(p, row.intake) });
 });
 
-// ─── Admin: two-person Match Key ───────────────────────────────────────
+// ─── Admin: Compare For Match (two-person internal analysis) ───────────
 app.post('/api/admin/match', requireAdmin, async (req, res) => {
   if (!pool) return res.status(500).json({ error: 'DATABASE_URL not configured.' });
   const { profileIdA, profileIdB } = req.body || {};
@@ -122,11 +175,11 @@ app.post('/api/admin/match', requireAdmin, async (req, res) => {
   const [a, b] = await Promise.all([getProfile(profileIdA), getProfile(profileIdB)]);
   if (!a || !b) return res.status(404).json({ error: 'One or both profiles not found.' });
 
-  const key = matchKey(score(a.answers, a.intake), score(b.answers, b.intake), {
+  const summary = compareSummary(score(a.answers, a.intake), score(b.answers, b.intake), {
     aName: a.name,
     bName: b.name,
   });
-  res.json({ key });
+  res.json({ summary });
 });
 
 // ─── Admin: email a client their own dossier (never the matchmaker report) ──

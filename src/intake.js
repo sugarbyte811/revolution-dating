@@ -127,6 +127,18 @@ export const INTAKE_FIELDS = [
     type: 'text',
     required: true,
     placeholder: 'City and state, or the two places you split your time'
+  },
+  {
+    key: 'relationshipGoal',
+    label: 'What are you looking for?',
+    type: 'select',
+    required: true,
+    options: [
+      'Marriage-track',
+      'Long-term partnership',
+      'Dating with intention to find the right person',
+      'Not sure yet, open to see'
+    ]
   }
 ];
 

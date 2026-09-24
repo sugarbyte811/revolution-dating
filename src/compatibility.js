@@ -685,3 +685,47 @@ function positioningFor(client, match, matchName) {
 
   return lines;
 }
+
+/* ------------------------------------------------------------------ */
+/* COMPARE FOR MATCH - the matchmaker-facing two-person summary.       */
+/* Deliberately has no single compatibility percentage. The Best-Fit   */
+/* Key name/subtitle is the only categorical label; everything else is */
+/* narrative, so a human still makes the call.                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * @param {object} a scored profile (from score())
+ * @param {object} b scored profile (from score())
+ * @param {object} opts { aName, bName }
+ */
+export function compareSummary(a, b, opts = {}) {
+  const key = matchKey(a, b, opts);
+  const dealbreakers = hardFilters(a.intake || {}, b.intake || {});
+  const conflicts = [...dealbreakers.blocks];
+  if (key.longTerm?.kidsNote) conflicts.push(key.longTerm.kidsNote);
+
+  return {
+    aName: key.aName,
+    bName: key.bName,
+    strongAlignment: [
+      ...key.whyWork,
+      ...(key.natural.length ? [`They will naturally read each other accurately on: ${key.natural.join(', ')}.`] : [])
+    ],
+    potentialFriction: key.misread,
+    relationshipDynamic: {
+      name: key.fit.name,
+      subtitle: key.fit.subtitle,
+      body: key.fit.body,
+      reasons: key.fit.reasons
+    },
+    communicationFit: {
+      loveLanguage: key.loveTranslation.map((t) => t.note),
+      conflict: [key.conflictTranslation.note, ...key.conflictTranslation.repairRows.map((r) => r.note)]
+    },
+    lifestyleFit: [key.lifestyle?.note, key.longTerm?.note].filter(Boolean),
+    attractionAffectionFit: [key.attraction.note, ...key.aShouldUnderstand, ...key.bShouldUnderstand].filter(Boolean),
+    dealbreakerConflicts: conflicts.length ? conflicts : ['None identified from intake filters or stated long-term positions.'],
+    questionsToExplore: key.watch,
+    introductionGuidance: { toA: key.intro.toA, toB: key.intro.toB }
+  };
+}
