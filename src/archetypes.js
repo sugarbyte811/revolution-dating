@@ -1,6 +1,6 @@
 /**
  * archetypes.js
- * The Revolution Profile archetype system, the hidden/secondary logic, and
+ * The Client Profile archetype system, the hidden/secondary logic, and
  * the Romantic Shadow set.
  *
  * Design rules obeyed here:

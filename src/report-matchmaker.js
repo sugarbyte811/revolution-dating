@@ -414,7 +414,7 @@ export function matchmakerReport(p) {
 
     rawFlags: p.flags,
     footer:
-      'Confidential. Revolution Dating internal use only. This document contains inferences drawn from assessment responses. It is not a psychological evaluation and must not be characterised as one, to the client or to anyone else.'
+      'Confidential. Your Matchmaking Business Here internal use only. This document contains inferences drawn from assessment responses. It is not a psychological evaluation and must not be characterised as one, to the client or to anyone else.'
   };
 }
 
@@ -738,6 +738,6 @@ export function matchmakerProfile(p, intake = {}) {
     matchmakerNotes: matchmakerNotes(p),
     firstDateFit: firstDateFit(p),
     matchingSummary: matchingSummary(p),
-    footer: 'Confidential. Revolution Dating internal use only. Conclusions only - not a psychological evaluation.'
+    footer: 'Confidential. Your Matchmaking Business Here internal use only. Conclusions only - not a psychological evaluation.'
   };
 }

@@ -1,7 +1,7 @@
 {
-  "name": "revolution-dating-assessment",
+  "name": "matchmaker-assessment",
   "version": "1.0.0",
-  "description": "The Revolution Profile - a private relationship assessment for Revolution Dating",
+  "description": "The Client Profile - a private relationship assessment for Your Matchmaking Business Here",
   "type": "module",
   "private": true,
   "scripts": {
