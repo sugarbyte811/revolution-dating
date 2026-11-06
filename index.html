@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Revolution Profile</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%233D0F1A'/%3E%3Ctext x='16' y='23.5' font-size='21' text-anchor='middle' fill='%23A8874B' font-family='Georgia,serif'%3ER%3C/text%3E%3C/svg%3E">
-<meta name="description" content="A private relationship profile, prepared for members of Revolution Dating.">
+<title>The Client Profile</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%233D0F1A'/%3E%3Cpolygon points='16,7 25,16 16,25 7,16' fill='%23A8874B'/%3E%3C/svg%3E">
+<meta name="description" content="A private relationship profile, prepared for members of Your Matchmaking Business Here.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,7 +54,7 @@ body{
 
 /* ---------- cover ---------- */
 #cover{background:var(--oxblood);color:var(--cream);justify-content:center;align-items:center;text-align:center;min-height:100vh;min-height:100dvh}
-#cover .house{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--champagne);margin-bottom:54px;font-weight:400}
+#cover .house{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--champagne);margin-bottom:54px;font-weight:400;line-height:1.7}
 #cover h1{font-size:clamp(46px,9vw,88px);font-weight:300;line-height:1.02;letter-spacing:.01em}
 #cover h1 em{font-style:italic;color:var(--gold-soft)}
 #cover .sub{font-size:clamp(13px,1.7vw,15px);letter-spacing:.2em;text-transform:uppercase;color:rgba(243,235,224,.55);margin-top:34px;font-weight:300}
@@ -133,7 +133,7 @@ body{
 /* ---------- report ---------- */
 #report{background:var(--ivory);padding:0 0 14vh}
 .rep-cover{background:var(--oxblood);color:var(--cream);text-align:center;padding:14vh 8vw 12vh;margin-bottom:0}
-.rep-cover .house{font-size:10px;letter-spacing:.42em;text-transform:uppercase;color:var(--champagne);margin-bottom:46px}
+.rep-cover .house{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--champagne);margin-bottom:46px;line-height:1.7}
 .rep-cover h1{font-family:'Cormorant Garamond',serif;font-size:clamp(38px,7vw,66px);font-weight:300;line-height:1.1}
 .rep-cover h1 em{font-style:italic;color:var(--gold-soft)}
 .rep-cover .for{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:rgba(243,235,224,.5);margin-top:30px}
@@ -230,8 +230,8 @@ body{
 <!-- ============ COVER ============ -->
 <section class="screen on" id="cover">
   <div class="wrap">
-    <div class="house">Revolution Dating &nbsp;&middot;&nbsp; Est. 1991</div>
-    <h1 class="serif">The Revolution<br><em>Profile</em></h1>
+    <div class="house">Your Matchmaking Business Here &nbsp;&middot;&nbsp; Est. Year</div>
+    <h1 class="serif">The Client<br><em>Profile</em></h1>
     <div class="sub">A Private Relationship Assessment</div>
     <div class="divider"></div>
     <p class="blurb">
@@ -310,9 +310,40 @@ const ROMAN = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII',
 
 /* ---------- state ---------- */
 const state = { intake:{}, answers:{}, i:0, profile:null };
-const VAULT = 'revolution.profiles.v1';
+const VAULT = 'matchmaker.profiles.v1';
+const LEGACY_VAULT = 'revolution.profiles.v1';
+const ADMIN_TOKEN_KEY = 'matchmaker.admin.token';
+const LEGACY_ADMIN_TOKEN_KEY = 'revolution.admin.token';
+
+// Copy any revolution.* value forward once, then drop the old key.
+function migrateStorageKey(store, nextKey, legacyKey){
+  try {
+    if (store.getItem(nextKey) == null) {
+      const legacy = store.getItem(legacyKey);
+      if (legacy != null) store.setItem(nextKey, legacy);
+    }
+    store.removeItem(legacyKey);
+  } catch { /* storage unavailable */ }
+}
+migrateStorageKey(localStorage, VAULT, LEGACY_VAULT);
+migrateStorageKey(sessionStorage, ADMIN_TOKEN_KEY, LEGACY_ADMIN_TOKEN_KEY);
+
 const loadVault = () => { try { return JSON.parse(localStorage.getItem(VAULT)) || []; } catch { return []; } };
 const saveVault = (v) => localStorage.setItem(VAULT, JSON.stringify(v));
+function storeAdminToken(token){
+  adminToken = token;
+  try {
+    sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+    sessionStorage.removeItem(LEGACY_ADMIN_TOKEN_KEY);
+  } catch { /* storage unavailable */ }
+}
+function clearAdminToken(){
+  adminToken = '';
+  try {
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    sessionStorage.removeItem(LEGACY_ADMIN_TOKEN_KEY);
+  } catch { /* storage unavailable */ }
+}
 
 function show(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
@@ -461,7 +492,7 @@ function renderReport(r, fromAdmin){
 
   $('report').innerHTML = `
     <div class="rep-cover">
-      <div class="house">Revolution Dating &middot; Private &amp; Confidential</div>
+      <div class="house">Your Matchmaking Business Here &middot; Private &amp; Confidential</div>
       <h1 class="serif">Your Romantic<br><em>Signature</em></h1>
       <div class="for">Prepared for ${esc(r.name)}</div>
     </div>
@@ -477,13 +508,13 @@ function renderReport(r, fromAdmin){
     <div class="foot">
       <button class="btn btn-dark" onclick="window.print()">Save as PDF</button>
       ${fromAdmin ? `<div style="margin-top:22px"><button class="btn-text" id="backToAdmin">&larr; Return to Matchmaker Dashboard</button></div>` : ''}
-      <div class="tiny">Revolution Dating &middot; Palm Beach &amp; New York</div>
+      <div class="tiny">Your Matchmaking Business Here &middot; Your City Here</div>
     </div>`;
   if (fromAdmin) $('backToAdmin').onclick = () => { show('internal'); renderVaultList(); };
 }
 
 /* ---------- matchmaker dashboard (server-backed, admin-token gated) ---------- */
-let adminToken = sessionStorage.getItem('revolution.admin.token') || '';
+let adminToken = sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
 let currentProfiles = [];
 
 async function adminFetch(url, opts = {}){
@@ -492,8 +523,7 @@ async function adminFetch(url, opts = {}){
     headers: { ...(opts.headers||{}), 'x-admin-token': adminToken }
   });
   if (res.status === 401){
-    adminToken = '';
-    sessionStorage.removeItem('revolution.admin.token');
+    clearAdminToken();
     renderLogin('Session expired. Please sign in again.');
     return null;
   }
@@ -519,8 +549,7 @@ function renderLogin(err){
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: pass })
     });
     if (!res.ok){ renderLogin('Incorrect password.'); return; }
-    adminToken = pass;
-    sessionStorage.setItem('revolution.admin.token', adminToken);
+    storeAdminToken(pass);
     renderVault();
   };
   $('doLogin').onclick = submit;
@@ -596,7 +625,7 @@ function renderVaultList(){
     </div>`;
 
   $('leave').onclick = () => show('cover');
-  $('signOut').onclick = () => { adminToken = ''; sessionStorage.removeItem('revolution.admin.token'); renderLogin(); };
+  $('signOut').onclick = () => { clearAdminToken(); renderLogin(); };
   $('changePass').onclick = () => renderChangePassword();
 
   let searchTimer;
@@ -670,8 +699,7 @@ function renderChangePassword(){
       msg.style.color = '#C9736F'; msg.textContent = body.error || 'Could not update password.';
       return;
     }
-    adminToken = newPassword;
-    sessionStorage.setItem('revolution.admin.token', adminToken);
+    storeAdminToken(newPassword);
     msg.style.color = '#8FB998'; msg.textContent = 'Password updated.';
   };
 }
@@ -779,7 +807,7 @@ function renderMatch(k, targetId = 'out'){
     <h3>Questions To Explore Before Introduction</h3>${ul(k.questionsToExplore)}
     <h3>How To Introduce ${esc(k.bName)} To ${esc(k.aName)}</h3>${ul(k.introductionGuidance.toA)}
     <h3>How To Introduce ${esc(k.aName)} To ${esc(k.bName)}</h3>${ul(k.introductionGuidance.toB)}
-    <p class="tiny">Confidential. Revolution Dating internal use only. No single compatibility score is generated by design - use this analysis to make the call.</p>`;
+    <p class="tiny">Confidential. Your Matchmaking Business Here internal use only. No single compatibility score is generated by design - use this analysis to make the call.</p>`;
   window.scrollTo({ top: 400, behavior: 'smooth' });
 }
 

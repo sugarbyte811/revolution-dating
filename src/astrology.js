@@ -331,7 +331,7 @@ export function astrologyProfile(intake) {
     angles: known
       ? {
           note:
-            'An accurate birth time was supplied, so the Ascendant, Descendant and house placements can be calculated. Revolution Dating calculates these separately with a full ephemeris before they are used in a report.',
+            'An accurate birth time was supplied, so the Ascendant, Descendant and house placements can be calculated. Your Matchmaking Business Here calculates these separately with a full ephemeris before they are used in a report.',
           available: false,
           reason:
             'Angle calculation is intentionally not performed in this module. Supply a verified chart if angles are required.'

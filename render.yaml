@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: revolution-dating
+    name: matchmaker-assessment
     env: node
     plan: starter
     buildCommand: npm install

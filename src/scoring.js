@@ -1,6 +1,6 @@
 /**
  * scoring.js
- * The deterministic engine behind The Revolution Profile.
+ * The deterministic engine behind The Client Profile.
  *
  * Guarantees:
  *  - Identical answers always produce an identical profile. No randomness.

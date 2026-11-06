@@ -2,7 +2,7 @@
  * numerology.js
  * Pythagorean numerology, calculated accurately from birth name and date.
  *
- * This is a SUPPORTING interpretive lens in The Revolution Profile. It never
+ * This is a SUPPORTING interpretive lens in The Client Profile. It never
  * drives a match. Every string produced here is framed as a numerological
  * reading rather than as established psychological fact.
  *

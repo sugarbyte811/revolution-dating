@@ -1,6 +1,6 @@
 /**
  * dimensions.js
- * The hidden measurement model behind The Revolution Profile.
+ * The hidden measurement model behind The Client Profile.
  *
  * Nothing in this file is ever shown to a client. Dimension keys are the
  * shared vocabulary for questions.js, scoring.js, the two report writers and

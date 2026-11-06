@@ -1,6 +1,6 @@
-# The Revolution Profile
+# The Client Profile
 
-A private relationship assessment for **Revolution Dating**.
+A private relationship assessment for **Your Matchmaking Business Here**.
 
 Twenty scored scenario questions produce three documents:
 
@@ -56,4 +56,4 @@ The internal scoring map and the test suite are kept out of this repository.
 
 ---
 
-© 2026 Sugarbyte LLC. Prepared for Revolution Dating.
+© 2026 Sugarbyte LLC. Prepared for Your Matchmaking Business Here.

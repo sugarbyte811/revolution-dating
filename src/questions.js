@@ -1,6 +1,6 @@
 /**
  * questions.js
- * The twenty scored questions of The Revolution Profile.
+ * The twenty scored questions of The Client Profile.
  *
  * CONSTRUCTION RULES (enforced by test/verify.js):
  *  - Exactly 20 scored questions. Intake fields are not questions.

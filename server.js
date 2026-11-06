@@ -1,4 +1,4 @@
-// server.js — serves the static Revolution Profile app and persists
+// server.js — serves the static Client Profile app and persists
 // completed assessments to Postgres. Admin routes (listing profiles,
 // generating the private matchmaker report, and the two-person Match Key)
 // are gated by a shared-secret x-admin-token header, mirroring the
@@ -279,7 +279,7 @@ app.post('/api/admin/email-results/:id', requireAdmin, async (req, res) => {
   await transporter.sendMail({
     from: process.env.MAIL_FROM || process.env.SMTP_USER,
     to: row.email,
-    subject: 'Your Revolution Dating Results',
+    subject: 'Your Matchmaking Business Here Results',
     text: bodyText,
   });
 
@@ -289,9 +289,9 @@ app.post('/api/admin/email-results/:id', requireAdmin, async (req, res) => {
 const PORT = process.env.PORT || 4173;
 ensureSchema()
   .then(() => {
-    app.listen(PORT, () => console.log(`Revolution Dating listening on ${PORT}`));
+    app.listen(PORT, () => console.log(`Your Matchmaking Business Here listening on ${PORT}`));
   })
   .catch((e) => {
     console.error('Failed to prepare database schema:', e.message);
-    app.listen(PORT, () => console.log(`Revolution Dating listening on ${PORT} (schema init failed)`));
+    app.listen(PORT, () => console.log(`Your Matchmaking Business Here listening on ${PORT} (schema init failed)`));
   });
